@@ -21,14 +21,19 @@ namespace Git4e
             this.ContentSerializer = contentSerializer ?? throw new ArgumentNullException(nameof(contentSerializer));
         }
 
+        private byte[] _Hash;
         public virtual byte[] ComputeHash(IHashCalculator hashCalculator)
         {
-            using (var stream = new MemoryStream())
+            if (_Hash == null)
             {
-                this.SerializeContent(stream, hashCalculator);
-                stream.Position = 0;
-                return hashCalculator.ComputeHash(stream);
+                using (var stream = new MemoryStream())
+                {
+                    this.SerializeContent(stream, hashCalculator);
+                    stream.Position = 0;
+                    _Hash = hashCalculator.ComputeHash(stream);
+                }
             }
+            return _Hash;
         }
     }
 }
