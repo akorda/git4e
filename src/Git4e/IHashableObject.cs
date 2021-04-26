@@ -6,7 +6,6 @@ namespace Git4e
     {
         string Type { get; }
         void SerializeContent(Stream stream);
-        //void MarkContentAsDirty();
         byte[] Hash { get; }
     }
 }

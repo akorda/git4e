@@ -1,11 +1,11 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Git4e;
 using ProtoBuf;
 
 namespace CrewSchedule
 {
-    [ProtoContract]
     public class Plan : HashableObject
     {
         [ProtoContract]
@@ -32,8 +32,33 @@ namespace CrewSchedule
             }
         }
 
-        public string PlanVersionId { get; set; }
-        public Vessel[] Vessels { get; set; } = new Vessel[0];
+        string _PlanVersionId;
+        public string PlanVersionId
+        {
+            get => _PlanVersionId;
+            set
+            {
+                if (_PlanVersionId != value)
+                {
+                    _PlanVersionId = value;
+                    this.MarkContentAsDirty();
+                }
+            }
+        }
+
+        IEnumerable<Vessel> _Vessels;
+        public IEnumerable<Vessel> Vessels
+        {
+            get => _Vessels;
+            set
+            {
+                if (_Vessels != value)
+                {
+                    _Vessels = value;
+                    this.MarkContentAsDirty();
+                }
+            }
+        }
 
         public Plan(IContentSerializer contentSerializer, IHashCalculator hashCalculator)
             : base("Plan", contentSerializer, hashCalculator)
@@ -42,7 +67,7 @@ namespace CrewSchedule
 
         public override void SerializeContent(Stream stream)
         {
-            var vesselHashes = this.Vessels
+            var vesselHashes = this.Vessels?
                 .OrderBy(vessel => vessel.VesselCode)
                 .Select(vessel => vessel.Hash)
                 .ToArray();

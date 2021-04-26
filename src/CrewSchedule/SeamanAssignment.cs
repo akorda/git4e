@@ -37,11 +37,75 @@ namespace CrewSchedule
             }
         }
 
-        public string SeamanAssignmentId { get; set; }
-        public int StartOverlap { get; set; }
-        public int? StartDuties { get; set; }
-        public int? EndDuties { get; set; }
-        public int EndOverlap { get; set; }
+        string _SeamanAssignmentId;
+        public string SeamanAssignmentId
+        {
+            get => _SeamanAssignmentId;
+            set
+            {
+                if (_SeamanAssignmentId != value)
+                {
+                    _SeamanAssignmentId = value;
+                    this.MarkContentAsDirty();
+                }
+            }
+        }
+
+        int _StartOverlap;
+        public int StartOverlap
+        {
+            get => _StartOverlap;
+            set
+            {
+                if (_StartOverlap != value)
+                {
+                    _StartOverlap = value;
+                    this.MarkContentAsDirty();
+                }
+            }
+        }
+
+        int? _StartDuties;
+        public int? StartDuties
+        {
+            get => _StartDuties;
+            set
+            {
+                if (_StartDuties != value)
+                {
+                    _StartDuties = value;
+                    this.MarkContentAsDirty();
+                }
+            }
+        }
+
+        int? _EndDuties;
+        public int? EndDuties
+        {
+            get => _EndDuties;
+            set
+            {
+                if (_EndDuties != value)
+                {
+                    _EndDuties = value;
+                    this.MarkContentAsDirty();
+                }
+            }
+        }
+
+        int _EndOverlap;
+        public int EndOverlap
+        {
+            get => _EndOverlap;
+            set
+            {
+                if (_EndOverlap != value)
+                {
+                    _EndOverlap = value;
+                    this.MarkContentAsDirty();
+                }
+            }
+        }
 
         //do not serialize
         public string SeamanCode { get; set; }

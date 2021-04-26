@@ -53,7 +53,9 @@ namespace CrewSchedule
                     };
                     Vessels.Add(vessel);
                 }, cancellationToken);
-                var vesselsMap = Vessels.ToDictionary(vessel => vessel.VesselCode);
+                var vesselsMap = new Dictionary<string, List<VesselPosition>>();
+                foreach (var vessel in Vessels)
+                    vesselsMap[vessel.VesselCode] = new List<VesselPosition>();
 
                 sql = $@"
                     WITH SA AS
@@ -78,7 +80,9 @@ namespace CrewSchedule
                     };
                     Positions.Add(position);
                 }, cancellationToken);
-                var positionMap = Positions.ToDictionary(position => $"{position.VesselCode}#{position.DutyRankCode}#{position.PositionNo}");
+                var positionMap = new Dictionary<string, List<SeamanAssignment>>();
+                foreach (var position in Positions)
+                    positionMap[$"{position.VesselCode}#{position.DutyRankCode}#{position.PositionNo}"] = new List<SeamanAssignment>();
 
                 sql = $@"
                     SELECT SeamanAssignmentId, VesselCode, DutyRankCode, PositionNo, StartOverlappingSlot, StartSlot, EndSlot, EndOverlappingSlot, SeamanCode, VesselCode, DutyRankCode, PositionNo
@@ -121,33 +125,28 @@ namespace CrewSchedule
 
                 foreach (var asn in Assignments)
                 {
-                    if (positionMap.TryGetValue($"{asn.VesselCode}#{asn.DutyRankCode}#{asn.PositionNo}", out var pos))
-                        pos.SeamanAssignments.Add(asn);
-                    else
-                    {
-                        var a = 1;
-                        a++;
-                    }
+                    if (positionMap.TryGetValue($"{asn.VesselCode}#{asn.DutyRankCode}#{asn.PositionNo}", out var seamanAssignments))
+                        seamanAssignments.Add(asn);
 
                     if (seamenMap.TryGetValue(asn.SeamanCode, out var seaman))
                         asn.Seaman = seaman;
-                    else
-                    {
-                        var a = 1;
-                        a++;
-                    }
                 }
 
                 foreach (var pos in Positions)
                 {
-                    if (vesselsMap.TryGetValue(pos.VesselCode, out var vessel))
-                        vessel.Positions.Add(pos);
+                    if (vesselsMap.TryGetValue(pos.VesselCode, out var vesselPositions))
+                        vesselPositions.Add(pos);
                     else
                     {
                         var a = 1;
                         a++;
                     }
                 }
+
+                foreach (var vessel in Vessels)
+                    vessel.Positions = vesselsMap[vessel.VesselCode].AsEnumerable();
+                foreach (var position in Positions)
+                    position.SeamanAssignments = positionMap[$"{position.VesselCode}#{position.DutyRankCode}#{position.PositionNo}"].AsEnumerable();
 
                 this.Plan = new Plan(contentSerializer, hashCalculator)
                 {

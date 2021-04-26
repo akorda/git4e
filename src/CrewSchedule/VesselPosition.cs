@@ -45,11 +45,75 @@ namespace CrewSchedule
             }
         }
 
-        public string VesselPositionId { get; set; }
-        public string VesselCode { get; set; }
-        public string DutyRankCode { get; set; }
-        public int PositionNo { get; set; }
-        public List<SeamanAssignment> SeamanAssignments { get; set; } = new List<SeamanAssignment>();
+        string _VesselPositionId;
+        public string VesselPositionId
+        {
+            get => _VesselPositionId;
+            set
+            {
+                if (_VesselPositionId != value)
+                {
+                    _VesselPositionId = value;
+                    this.MarkContentAsDirty();
+                }
+            }
+        }
+
+        string _VesselCode;
+        public string VesselCode
+        {
+            get => _VesselCode;
+            set
+            {
+                if (_VesselCode != value)
+                {
+                    _VesselCode = value;
+                    this.MarkContentAsDirty();
+                }
+            }
+        }
+
+        string _DutyRankCode;
+        public string DutyRankCode
+        {
+            get => _DutyRankCode;
+            set
+            {
+                if (_DutyRankCode != value)
+                {
+                    _DutyRankCode = value;
+                    this.MarkContentAsDirty();
+                }
+            }
+        }
+
+        int _PositionNo;
+        public int PositionNo
+        {
+            get => _PositionNo;
+            set
+            {
+                if (_PositionNo != value)
+                {
+                    _PositionNo = value;
+                    this.MarkContentAsDirty();
+                }
+            }
+        }
+
+        IEnumerable<SeamanAssignment> _SeamanAssignments;
+        public IEnumerable<SeamanAssignment> SeamanAssignments
+        {
+            get => _SeamanAssignments;
+            set
+            {
+                if (_SeamanAssignments != value)
+                {
+                    _SeamanAssignments = value;
+                    this.MarkContentAsDirty();
+                }
+            }
+        }
 
         public VesselPosition(IContentSerializer contentSerializer, IHashCalculator hashCalculator)
             : base("VesselPosition", contentSerializer, hashCalculator)
@@ -58,8 +122,7 @@ namespace CrewSchedule
 
         public override void SerializeContent(Stream stream)
         {
-            var seamanAssignmentHashes = this
-                .SeamanAssignments
+            var seamanAssignmentHashes = this.SeamanAssignments?
                 .OrderBy(asn => asn.StartOverlap)
                 .Select(asn => asn.Hash)
                 .ToArray();

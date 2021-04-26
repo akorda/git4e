@@ -28,9 +28,48 @@ namespace CrewSchedule
             }
         }
 
-        public string SeamanCode { get; set; }
-        public string LastName { get; set; }
-        public string FirstName { get; set; }
+        string _SeamanCode;
+        public string SeamanCode
+        {
+            get => _SeamanCode;
+            set
+            {
+                if (_SeamanCode != value)
+                {
+                    _SeamanCode = value;
+                    this.MarkContentAsDirty();
+                }
+            }
+        }
+
+        string _FirstName;
+        public string FirstName
+        {
+            get => _FirstName;
+            set
+            {
+                if (_FirstName != value)
+                {
+                    _FirstName = value;
+                    this.MarkContentAsDirty();
+                }
+            }
+        }
+
+        string _LastName;
+        public string LastName
+        {
+            get => _LastName;
+            set
+            {
+                if (_LastName != value)
+                {
+                    _LastName = value;
+                    this.MarkContentAsDirty();
+                }
+            }
+        }
+
         //Compatibilities, etc
 
         public Seaman(IContentSerializer contentSerializer, IHashCalculator hashCalculator)

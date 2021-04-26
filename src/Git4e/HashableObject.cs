@@ -18,6 +18,11 @@ namespace Git4e
 
         public abstract void SerializeContent(Stream stream);
 
+        protected void MarkContentAsDirty()
+        {
+            _Hash = null;
+        }
+
         private byte[] _Hash;
         public virtual byte[] Hash
         {

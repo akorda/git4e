@@ -35,9 +35,47 @@ namespace CrewSchedule
             }
         }
 
-        public string VesselCode { get; set; }
-        public string Name { get; set; }
-        public List<VesselPosition> Positions { get; set; } = new List<VesselPosition>();
+        string _VesselCode;
+        public string VesselCode
+        {
+            get => _VesselCode;
+            set
+            {
+                if (_VesselCode != value)
+                {
+                    _VesselCode = value;
+                    this.MarkContentAsDirty();
+                }
+            }
+        }
+
+        string _Name;
+        public string Name
+        {
+            get => _Name;
+            set
+            {
+                if (_Name != value)
+                {
+                    _Name = value;
+                    this.MarkContentAsDirty();
+                }
+            }
+        }
+
+        IEnumerable<VesselPosition> _Positions;
+        public IEnumerable<VesselPosition> Positions
+        {
+            get => _Positions;
+            set
+            {
+                if (_Positions != value)
+                {
+                    _Positions = value;
+                    this.MarkContentAsDirty();
+                }
+            }
+        }
 
         public Vessel(IContentSerializer contentSerializer, IHashCalculator hashCalculator)
             : base("Vessel", contentSerializer, hashCalculator)
@@ -46,7 +84,7 @@ namespace CrewSchedule
 
         public override void SerializeContent(Stream stream)
         {
-            var positionHashes = this.Positions
+            var positionHashes = this.Positions?
                 .OrderBy(pos => pos.DutyRankCode)
                 .ThenBy(pos => pos.PositionNo)
                 .Select(pos => pos.Hash)
