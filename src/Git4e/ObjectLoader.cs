@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Git4e
@@ -22,11 +23,11 @@ namespace Git4e
             IContentTypeResolver contentTypeResolver,
             IContentToObjectConverter contentToObjectConverter = null)
         {
-            this.HashToTextConverter = hashToTextConverter ?? throw new System.ArgumentNullException(nameof(hashToTextConverter));
-            this.ObjectStore = objectStore ?? throw new System.ArgumentNullException(nameof(objectStore));
-            this.ContentSerializer = contentSerializer ?? throw new System.ArgumentNullException(nameof(contentSerializer));
-            this.HashCalculator = hashCalculator ?? throw new System.ArgumentNullException(nameof(hashCalculator));
-            this.ContentTypeResolver = contentTypeResolver ?? throw new System.ArgumentNullException(nameof(contentTypeResolver));
+            this.HashToTextConverter = hashToTextConverter ?? throw new ArgumentNullException(nameof(hashToTextConverter));
+            this.ObjectStore = objectStore ?? throw new ArgumentNullException(nameof(objectStore));
+            this.ContentSerializer = contentSerializer ?? throw new ArgumentNullException(nameof(contentSerializer));
+            this.HashCalculator = hashCalculator ?? throw new ArgumentNullException(nameof(hashCalculator));
+            this.ContentTypeResolver = contentTypeResolver ?? throw new ArgumentNullException(nameof(contentTypeResolver));
             this.ContentToObjectConverter = contentToObjectConverter;
         }
 
