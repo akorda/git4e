@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <PackageId>Git4e</PackageId>
+    <Version>0.9.0</Version>
+    <Authors>akorda (akorda@gmail.com)</Authors>
+    <PackageDescription>Git4e</PackageDescription>
+    <RepositoryUrl>https://github.com/akorda/git4e</RepositoryUrl>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>D:\Projects\GitHub\git4e\src\Git4e\Git4e.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>D:\Projects\GitHub\git4e\src\Git4e\Git4e.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Git4e.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="protobuf-net" Version="3.0.101" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Git4e.Abstractions\Git4e.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

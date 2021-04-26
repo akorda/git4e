@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace>Git4e</RootNamespace>
+    <PackageId>Git4e.Abstractions</PackageId>
+    <Version>0.9.0</Version>
+    <Authors>akorda (akorda@gmail.com)</Authors>
+    <PackageDescription>Git4e abstractions</PackageDescription>
+    <RepositoryUrl>https://github.com/akorda/git4e</RepositoryUrl>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>D:\Projects\GitHub\git4e\src\Git4e.Abstractions\Git4e.Abstractions.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>D:\Projects\GitHub\git4e\src\Git4e.Abstractions\Git4e.Abstractions.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Git4e.Abstractions.xml" />
+  </ItemGroup>
+
+</Project>
