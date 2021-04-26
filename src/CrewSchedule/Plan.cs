@@ -16,7 +16,7 @@ namespace CrewSchedule
             [ProtoMember(2)]
             public byte[][] VesselHashes { get; set; }
 
-            public object ToObject(IContentSerializer contentSerializer, IObjectLoader objectLoader)
+            public object ToObject(IContentSerializer contentSerializer, IObjectLoader objectLoader, IHashCalculator hashCalculator)
             {
                 var vessels =
                     this.VesselHashes
@@ -24,7 +24,7 @@ namespace CrewSchedule
                     .Select(hash => objectLoader.GetObjectByHash(hash).Result)
                     .Cast<Vessel>()
                     .ToArray();
-                return new Plan(contentSerializer)
+                return new Plan(contentSerializer, hashCalculator)
                 {
                     PlanVersionId = this.PlanVersionId,
                     Vessels = vessels
@@ -35,16 +35,16 @@ namespace CrewSchedule
         public string PlanVersionId { get; set; }
         public Vessel[] Vessels { get; set; } = new Vessel[0];
 
-        public Plan(IContentSerializer contentSerializer)
-            : base("Plan", contentSerializer)
+        public Plan(IContentSerializer contentSerializer, IHashCalculator hashCalculator)
+            : base("Plan", contentSerializer, hashCalculator)
         {
         }
 
-        public override void SerializeContent(Stream stream, IHashCalculator hashCalculator)
+        public override void SerializeContent(Stream stream)
         {
             var vesselHashes = this.Vessels
                 .OrderBy(vessel => vessel.VesselCode)
-                .Select(vessel => vessel.ComputeHash(hashCalculator))
+                .Select(vessel => vessel.ComputeHash())
                 .ToArray();
             var content = new PlanContent
             {

@@ -12,17 +12,20 @@ namespace Git4e
         public IHashToTextConverter HashToTextConverter { get; }
         public IObjectStore ObjectStore { get; }
         public IContentSerializer ContentSerializer { get; }
+        public IHashCalculator HashCalculator { get; }
         public IContentTypeResolver ContentTypeResolver { get; }
 
         public ObjectLoader(
             IHashToTextConverter hashToTextConverter,
             IObjectStore objectStore,
             IContentSerializer contentSerializer,
+            IHashCalculator hashCalculator,
             IContentTypeResolver contentTypeResolver)
         {
             this.HashToTextConverter = hashToTextConverter ?? throw new System.ArgumentNullException(nameof(hashToTextConverter));
             this.ObjectStore = objectStore ?? throw new System.ArgumentNullException(nameof(objectStore));
             this.ContentSerializer = contentSerializer ?? throw new System.ArgumentNullException(nameof(contentSerializer));
+            this.HashCalculator = hashCalculator ?? throw new System.ArgumentNullException(nameof(hashCalculator));
             this.ContentTypeResolver = contentTypeResolver ?? throw new System.ArgumentNullException(nameof(contentTypeResolver));
         }
 
@@ -49,7 +52,7 @@ namespace Git4e
 
             if (content != null)
             {
-                obj = content.ToObject(this.ContentSerializer, this);
+                obj = content.ToObject(this.ContentSerializer, this, this.HashCalculator);
                 ObjectCache[hashText] = obj;
             }
             else

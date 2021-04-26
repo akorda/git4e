@@ -26,7 +26,7 @@ namespace CrewSchedule
             [ProtoMember(5)]
             public byte[][] SeamanAssignmentHashes { get; set; }
 
-            public object ToObject(IContentSerializer contentSerializer, IObjectLoader objectLoader)
+            public object ToObject(IContentSerializer contentSerializer, IObjectLoader objectLoader, IHashCalculator hashCalculator)
             {
                 var seamanAssignments =
                     this.SeamanAssignmentHashes
@@ -34,7 +34,7 @@ namespace CrewSchedule
                     .Select(hash => objectLoader.GetObjectByHash(hash).Result)
                     .Cast<SeamanAssignment>()
                     .ToList();
-                return new VesselPosition(contentSerializer)
+                return new VesselPosition(contentSerializer, hashCalculator)
                 {
                     VesselPositionId = this.VesselPositionId,
                     VesselCode = this.VesselCode,
@@ -51,17 +51,17 @@ namespace CrewSchedule
         public int PositionNo { get; set; }
         public List<SeamanAssignment> SeamanAssignments { get; set; } = new List<SeamanAssignment>();
 
-        public VesselPosition(IContentSerializer contentSerializer)
-            : base("VesselPosition", contentSerializer)
+        public VesselPosition(IContentSerializer contentSerializer, IHashCalculator hashCalculator)
+            : base("VesselPosition", contentSerializer, hashCalculator)
         {
         }
 
-        public override void SerializeContent(Stream stream, IHashCalculator hashCalculator)
+        public override void SerializeContent(Stream stream)
         {
             var seamanAssignmentHashes = this
                 .SeamanAssignments
                 .OrderBy(asn => asn.StartOverlap)
-                .Select(asn => asn.ComputeHash(hashCalculator))
+                .Select(asn => asn.ComputeHash())
                 .ToArray();
             var content = new VesselPositionContent
             {

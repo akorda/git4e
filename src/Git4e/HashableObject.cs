@@ -7,30 +7,27 @@ namespace Git4e
     {
         public string Type { get; private set; }
         public IContentSerializer ContentSerializer { get; }
+        public IHashCalculator HashCalculator { get; }
 
-        //public virtual void SerializeContent(IContentSerializer contentSerializer, IHashCalculator hashCalculator, Stream stream)
-        //{
-        //    this.SerializeContent(stream, contentSerializer, hashCalculator);
-        //}
-
-        public abstract void SerializeContent(Stream stream, IHashCalculator hashCalculator);
-
-        public HashableObject(string type, IContentSerializer contentSerializer)
+        public HashableObject(string type, IContentSerializer contentSerializer, IHashCalculator hashCalculator)
         {
             this.Type = type ?? throw new ArgumentNullException(nameof(type));
             this.ContentSerializer = contentSerializer ?? throw new ArgumentNullException(nameof(contentSerializer));
+            this.HashCalculator = hashCalculator ?? throw new ArgumentNullException(nameof(hashCalculator));
         }
 
+        public abstract void SerializeContent(Stream stream);
+
         private byte[] _Hash;
-        public virtual byte[] ComputeHash(IHashCalculator hashCalculator)
+        public virtual byte[] ComputeHash()
         {
             if (_Hash == null)
             {
                 using (var stream = new MemoryStream())
                 {
-                    this.SerializeContent(stream, hashCalculator);
+                    this.SerializeContent(stream);
                     stream.Position = 0;
-                    _Hash = hashCalculator.ComputeHash(stream);
+                    _Hash = this.HashCalculator.ComputeHash(stream);
                 }
             }
             return _Hash;

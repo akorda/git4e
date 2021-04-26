@@ -2,6 +2,6 @@
 {
     public interface IContent
     {
-        object ToObject(IContentSerializer contentSerializer, IObjectLoader objectLoader);
+        object ToObject(IContentSerializer contentSerializer, IObjectLoader objectLoader, IHashCalculator hashCalculator);
     }
 }

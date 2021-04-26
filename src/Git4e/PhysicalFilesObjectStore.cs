@@ -30,7 +30,7 @@ namespace Git4e
         public Task SaveObjectAsync(IHashableObject content, CancellationToken cancellationToken = default)
         {
             var root = this.Options.RootDirectory;
-            var hash = content.ComputeHash(this.HashCalculator);
+            var hash = content.ComputeHash();
             var hashText = this.HashToTextConverter.ConvertHashToText(hash);
             var objectDirectoryName = hashText.Substring(0, ObjectDirLength);
             var objectDirectory = Path.Combine(root, objectDirectoryName);
@@ -54,7 +54,7 @@ namespace Git4e
             }
 
             using (var stream = new FileStream(path, FileMode.CreateNew))
-                content.SerializeContent(stream, this.HashCalculator);
+                content.SerializeContent(stream);
 
             return Task.CompletedTask;
         }
@@ -69,7 +69,7 @@ namespace Git4e
 
             foreach (var content in contents)
             {
-                var hash = content.ComputeHash(this.HashCalculator);
+                var hash = content.ComputeHash();
                 var hashText = this.HashToTextConverter.ConvertHashToText(hash);
                 var objectDirectoryName = hashText.Substring(0, ObjectDirLength);
                 var objectDirectory = Path.Combine(root, objectDirectoryName);
@@ -88,7 +88,7 @@ namespace Git4e
                 }
 
                 using (var stream = new FileStream(path, FileMode.CreateNew))
-                    content.SerializeContent(stream, this.HashCalculator);
+                    content.SerializeContent(stream);
 
                 //await File.WriteAllBytesAsync(path, content.SerializeContent(contentSerializer, hashCalculator, hashToTextConverter), cancellationToken);
 
@@ -142,7 +142,7 @@ namespace Git4e
         public Task<byte[]> AddCommit(Commit commit, CancellationToken cancellationToken = default)
         {
             var root = this.Options.RootDirectory;
-            var hash = commit.ComputeHash(this.HashCalculator);
+            var hash = commit.ComputeHash();
             var hashText = this.HashToTextConverter.ConvertHashToText(hash);
             var objectDirectoryName = hashText.Substring(0, ObjectDirLength);
             var objectDirectory = Path.Combine(root, objectDirectoryName);
@@ -166,7 +166,7 @@ namespace Git4e
             }
 
             using (var stream = new FileStream(path, FileMode.CreateNew))
-                commit.SerializeContent(stream, this.HashCalculator);
+                commit.SerializeContent(stream);
 
             return Task.FromResult(hash);
         }

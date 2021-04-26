@@ -22,8 +22,9 @@ namespace TestClient
             var hashToTextConverter = serviceProvider.GetService<IHashToTextConverter>();
             var contentTypeResolver = serviceProvider.GetService<IContentTypeResolver>();
             var objectLoader = serviceProvider.GetService<IObjectLoader>();
+            var hashCalculator = serviceProvider.GetService<IHashCalculator>();
 
-            await LoadAndCommit(configuration, contentSerializer, objectStore, cancellationToken);
+            await LoadAndCommit(configuration, contentSerializer, objectStore, hashCalculator, cancellationToken);
 
             //load a full-object from hash
             var hashText = "9616A3655A008A4429E6135AC2C6932C071B97CB";
@@ -33,7 +34,7 @@ namespace TestClient
             var vp = await objectStore.GetObjectContentAsync(hash, contentType);
             var content = vp as IContent;
 
-            var obj = content.ToObject(contentSerializer, objectLoader);
+            var obj = content.ToObject(contentSerializer, objectLoader, hashCalculator);
         }
 
         private static IConfiguration GetConfiguration()
@@ -44,15 +45,15 @@ namespace TestClient
                 .Build();
         }
 
-        private static async Task LoadAndCommit(IConfiguration configuration, IContentSerializer contentSerializer, IObjectStore objectStore, CancellationToken cancellationToken)
+        private static async Task LoadAndCommit(IConfiguration configuration, IContentSerializer contentSerializer, IObjectStore objectStore, IHashCalculator hashCalculator, CancellationToken cancellationToken)
         {
             var connectionString = configuration.GetConnectionString("CrewSchedule");
             var planVersionId = "1";
 
             var data = new Data();
-            await data.LoadAsync(connectionString, planVersionId, contentSerializer, cancellationToken);
+            await data.LoadAsync(connectionString, planVersionId, contentSerializer, hashCalculator, cancellationToken);
 
-            var commit = new Commit(contentSerializer)
+            var commit = new Commit(contentSerializer, hashCalculator)
             {
                 Author = "akorda",
                 CommitDate = DateTime.Now,

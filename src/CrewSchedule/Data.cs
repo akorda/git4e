@@ -16,7 +16,12 @@ namespace CrewSchedule
         public List<Vessel> Vessels { get; private set; }
         public Plan Plan { get; private set; }
 
-        public async Task LoadAsync(string connectionString, string planVersionId, IContentSerializer contentSerializer, CancellationToken cancellationToken = default)
+        public async Task LoadAsync(
+            string connectionString,
+            string planVersionId,
+            IContentSerializer contentSerializer,
+            IHashCalculator hashCalculator,
+            CancellationToken cancellationToken = default)
         {
             Dictionary<string, Seaman> seamenMap;
             SqlDataLoader.GlobalDbProviderFactory = System.Data.SqlClient.SqlClientFactory.Instance;
@@ -41,7 +46,7 @@ namespace CrewSchedule
                     ";
                 await loader.TraverseReaderAsync(sql, parameters, reader =>
                 {
-                    var vessel = new Vessel(contentSerializer)
+                    var vessel = new Vessel(contentSerializer, hashCalculator)
                     {
                         VesselCode = reader.GetString("VesselCode"),
                         Name = reader.GetString("Name")
@@ -64,7 +69,7 @@ namespace CrewSchedule
                     ";
                 await loader.TraverseReaderAsync(sql, parameters, reader =>
                 {
-                    var position = new VesselPosition(contentSerializer)
+                    var position = new VesselPosition(contentSerializer, hashCalculator)
                     {
                         VesselPositionId = reader.GetString("VesselPositionId"),
                         VesselCode = reader.GetString("VesselCode"),
@@ -81,7 +86,7 @@ namespace CrewSchedule
                     WHERE PlanVersionId = @PlanVersionId";
                 await loader.TraverseReaderAsync(sql, parameters, reader =>
                 {
-                    var asn = new SeamanAssignment(contentSerializer)
+                    var asn = new SeamanAssignment(contentSerializer, hashCalculator)
                     {
                         SeamanAssignmentId = reader.GetString("SeamanAssignmentId"),
                         StartOverlap = reader.GetInt("StartOverlappingSlot").Value,
@@ -104,7 +109,7 @@ namespace CrewSchedule
                     (SELECT DISTINCT(SeamanCode) FROM cs.SeamanAssignments WHERE PlanVersionId = @PlanVersionId)";
                 await loader.TraverseReaderAsync(sql, parameters, reader =>
                 {
-                    var seaman = new Seaman(contentSerializer)
+                    var seaman = new Seaman(contentSerializer, hashCalculator)
                     {
                         SeamanCode = reader.GetString("PersonCode"),
                         LastName = reader.GetString("LastName"),
@@ -144,7 +149,7 @@ namespace CrewSchedule
                     }
                 }
 
-                this.Plan = new Plan(contentSerializer)
+                this.Plan = new Plan(contentSerializer, hashCalculator)
                 {
                     PlanVersionId = planVersionId,
                     Vessels = Vessels.ToArray()

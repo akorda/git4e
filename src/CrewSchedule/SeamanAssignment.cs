@@ -22,10 +22,10 @@ namespace CrewSchedule
             [ProtoMember(6)]
             public byte[] SeamanHash { get; set; }
 
-            public object ToObject(IContentSerializer contentSerializer, IObjectLoader objectLoader)
+            public object ToObject(IContentSerializer contentSerializer, IObjectLoader objectLoader, IHashCalculator hashCalculator)
             {
                 var seaman = objectLoader.GetObjectByHash(this.SeamanHash).Result as Seaman;
-                return new SeamanAssignment(contentSerializer)
+                return new SeamanAssignment(contentSerializer, hashCalculator)
                 {
                     SeamanAssignmentId = this.SeamanAssignmentId,
                     StartOverlap = this.StartOverlap,
@@ -52,12 +52,12 @@ namespace CrewSchedule
         public string DutyRankCode { get; set; }
         public int PositionNo { get; set; }
 
-        public SeamanAssignment(IContentSerializer contentSerializer)
-            : base("SeamanAssignment", contentSerializer)
+        public SeamanAssignment(IContentSerializer contentSerializer, IHashCalculator hashCalculator)
+            : base("SeamanAssignment", contentSerializer, hashCalculator)
         {
         }
 
-        public override void SerializeContent(Stream stream, IHashCalculator hashCalculator)
+        public override void SerializeContent(Stream stream)
         {
             var content = new SeamanAssignmentContent
             {
@@ -66,7 +66,7 @@ namespace CrewSchedule
                 StartDuties = this.StartDuties,
                 EndDuties = this.EndDuties,
                 EndOverlap = this.EndOverlap,
-                SeamanHash = this.Seaman?.ComputeHash(hashCalculator)
+                SeamanHash = this.Seaman?.ComputeHash()
             };
             this.ContentSerializer.SerializeContent(stream, this.Type, content);
         }

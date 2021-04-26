@@ -5,8 +5,8 @@ namespace Git4e
     public interface IHashableObject
     {
         string Type { get; }
-        void SerializeContent(Stream stream, IHashCalculator hashCalculator);
+        void SerializeContent(Stream stream);
         //void MarkContentAsDirty();
-        byte[] ComputeHash(IHashCalculator hashCalculator);
+        byte[] ComputeHash();
     }
 }

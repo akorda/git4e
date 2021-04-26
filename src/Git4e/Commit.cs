@@ -27,14 +27,14 @@ namespace Git4e
         public IHashableObject Root { get; set; }
         public string[] ParentCommitHashes { get; set; }
 
-        public Commit(IContentSerializer contentSerializer)
-            : base("Commit", contentSerializer)
+        public Commit(IContentSerializer contentSerializer, IHashCalculator hashCalculator)
+            : base("Commit", contentSerializer, hashCalculator)
         {
         }
 
-        public override void SerializeContent(Stream stream, IHashCalculator hashCalculator)
+        public override void SerializeContent(Stream stream)
         {
-            var rootHash = this.Root.ComputeHash(hashCalculator);
+            var rootHash = this.Root.ComputeHash();
             var content = new CommitContent
             {
                 Author = this.Author,

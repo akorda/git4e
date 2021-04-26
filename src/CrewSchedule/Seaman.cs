@@ -17,9 +17,9 @@ namespace CrewSchedule
             public string FirstName { get; set; }
             //Compatibilities, etc
 
-            public object ToObject(IContentSerializer contentSerializer, IObjectLoader objectLoader)
+            public object ToObject(IContentSerializer contentSerializer, IObjectLoader objectLoader, IHashCalculator hashCalculator)
             {
-                return new Seaman(contentSerializer)
+                return new Seaman(contentSerializer, hashCalculator)
                 {
                     SeamanCode = this.SeamanCode,
                     LastName = this.LastName,
@@ -33,12 +33,12 @@ namespace CrewSchedule
         public string FirstName { get; set; }
         //Compatibilities, etc
 
-        public Seaman(IContentSerializer contentSerializer)
-            : base("Seaman", contentSerializer)
+        public Seaman(IContentSerializer contentSerializer, IHashCalculator hashCalculator)
+            : base("Seaman", contentSerializer, hashCalculator)
         {
         }
 
-        public override void SerializeContent(Stream stream, IHashCalculator hashCalculator)
+        public override void SerializeContent(Stream stream)
         {
             var content = new SeamanContent
             {
