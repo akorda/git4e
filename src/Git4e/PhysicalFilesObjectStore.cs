@@ -30,7 +30,7 @@ namespace Git4e
         public Task SaveObjectAsync(IHashableObject content, CancellationToken cancellationToken = default)
         {
             var root = this.Options.RootDirectory;
-            var hash = content.ComputeHash();
+            var hash = content.Hash;
             var hashText = this.HashToTextConverter.ConvertHashToText(hash);
             var objectDirectoryName = hashText.Substring(0, ObjectDirLength);
             var objectDirectory = Path.Combine(root, objectDirectoryName);
@@ -69,7 +69,7 @@ namespace Git4e
 
             foreach (var content in contents)
             {
-                var hash = content.ComputeHash();
+                var hash = content.Hash;
                 var hashText = this.HashToTextConverter.ConvertHashToText(hash);
                 var objectDirectoryName = hashText.Substring(0, ObjectDirLength);
                 var objectDirectory = Path.Combine(root, objectDirectoryName);
@@ -142,7 +142,7 @@ namespace Git4e
         public Task<byte[]> AddCommit(Commit commit, CancellationToken cancellationToken = default)
         {
             var root = this.Options.RootDirectory;
-            var hash = commit.ComputeHash();
+            var hash = commit.Hash;
             var hashText = this.HashToTextConverter.ConvertHashToText(hash);
             var objectDirectoryName = hashText.Substring(0, ObjectDirLength);
             var objectDirectory = Path.Combine(root, objectDirectoryName);

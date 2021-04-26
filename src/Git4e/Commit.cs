@@ -34,7 +34,7 @@ namespace Git4e
 
         public override void SerializeContent(Stream stream)
         {
-            var rootHash = this.Root.ComputeHash();
+            var rootHash = this.Root.Hash;
             var content = new CommitContent
             {
                 Author = this.Author,

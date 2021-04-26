@@ -19,18 +19,21 @@ namespace Git4e
         public abstract void SerializeContent(Stream stream);
 
         private byte[] _Hash;
-        public virtual byte[] ComputeHash()
+        public virtual byte[] Hash
         {
-            if (_Hash == null)
+            get
             {
-                using (var stream = new MemoryStream())
+                if (_Hash == null)
                 {
-                    this.SerializeContent(stream);
-                    stream.Position = 0;
-                    _Hash = this.HashCalculator.ComputeHash(stream);
+                    using (var stream = new MemoryStream())
+                    {
+                        this.SerializeContent(stream);
+                        stream.Position = 0;
+                        _Hash = this.HashCalculator.ComputeHash(stream);
+                    }
                 }
+                return _Hash;
             }
-            return _Hash;
         }
     }
 }

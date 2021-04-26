@@ -61,7 +61,7 @@ namespace CrewSchedule
             var seamanAssignmentHashes = this
                 .SeamanAssignments
                 .OrderBy(asn => asn.StartOverlap)
-                .Select(asn => asn.ComputeHash())
+                .Select(asn => asn.Hash)
                 .ToArray();
             var content = new VesselPositionContent
             {

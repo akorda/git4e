@@ -44,7 +44,7 @@ namespace CrewSchedule
         {
             var vesselHashes = this.Vessels
                 .OrderBy(vessel => vessel.VesselCode)
-                .Select(vessel => vessel.ComputeHash())
+                .Select(vessel => vessel.Hash)
                 .ToArray();
             var content = new PlanContent
             {

@@ -66,7 +66,7 @@ namespace CrewSchedule
                 StartDuties = this.StartDuties,
                 EndDuties = this.EndDuties,
                 EndOverlap = this.EndOverlap,
-                SeamanHash = this.Seaman?.ComputeHash()
+                SeamanHash = this.Seaman?.Hash
             };
             this.ContentSerializer.SerializeContent(stream, this.Type, content);
         }

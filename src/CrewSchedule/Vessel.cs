@@ -49,7 +49,7 @@ namespace CrewSchedule
             var positionHashes = this.Positions
                 .OrderBy(pos => pos.DutyRankCode)
                 .ThenBy(pos => pos.PositionNo)
-                .Select(pos => pos.ComputeHash())
+                .Select(pos => pos.Hash)
                 .ToArray();
             var content = new VesselContent
             {
