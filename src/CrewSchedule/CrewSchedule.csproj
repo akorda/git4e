@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BPC.Data.SqlClient" Version="4.6.118.127" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Git4e\Git4e.csproj" />
+  </ItemGroup>
+
+</Project>
