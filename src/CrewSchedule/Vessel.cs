@@ -18,7 +18,7 @@ namespace CrewSchedule
             [ProtoMember(3)]
             public byte[][] PositionHashes { get; set; }
 
-            public object ToObject(IContentSerializer contentSerializer, IObjectLoader objectLoader, IHashCalculator hashCalculator)
+            public IHashableObject ToHashableObject(IContentSerializer contentSerializer, IObjectLoader objectLoader, IHashCalculator hashCalculator)
             {
                 var positions =
                     this.PositionHashes

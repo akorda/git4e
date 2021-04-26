@@ -5,9 +5,7 @@ namespace Git4e
 {
     public class ObjectLoader : IObjectLoader
     {
-        Dictionary<string, object> ObjectCache = new Dictionary<string, object>();
-        int cacheHits = 0;
-
+        readonly Dictionary<string, object> ObjectCache = new Dictionary<string, object>();
 
         public IHashToTextConverter HashToTextConverter { get; }
         public IObjectStore ObjectStore { get; }
@@ -36,10 +34,8 @@ namespace Git4e
 
             var hashText = this.HashToTextConverter.ConvertHashToText(hash);
 
-            object obj;
-            if (ObjectCache.TryGetValue(hashText, out obj))
+            if (this.ObjectCache.TryGetValue(hashText, out var obj))
             {
-                cacheHits++;
                 return obj;
             }
 
@@ -48,12 +44,11 @@ namespace Git4e
             var objectContent = (await this.ObjectStore.GetObjectContentAsync(hash, type));
             if (objectContent == null)
                 return null;
-            var content = objectContent as IContent;
 
-            if (content != null)
+            if (objectContent is IContent content)
             {
-                obj = content.ToObject(this.ContentSerializer, this, this.HashCalculator);
-                ObjectCache[hashText] = obj;
+                obj = content.ToHashableObject(this.ContentSerializer, this, this.HashCalculator);
+                this.ObjectCache[hashText] = obj;
             }
             else
             {

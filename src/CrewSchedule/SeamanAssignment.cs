@@ -22,7 +22,7 @@ namespace CrewSchedule
             [ProtoMember(6)]
             public byte[] SeamanHash { get; set; }
 
-            public object ToObject(IContentSerializer contentSerializer, IObjectLoader objectLoader, IHashCalculator hashCalculator)
+            public IHashableObject ToHashableObject(IContentSerializer contentSerializer, IObjectLoader objectLoader, IHashCalculator hashCalculator)
             {
                 var seaman = objectLoader.GetObjectByHash(this.SeamanHash).Result as Seaman;
                 return new SeamanAssignment(contentSerializer, hashCalculator)

@@ -16,7 +16,7 @@ namespace CrewSchedule
             [ProtoMember(2)]
             public byte[][] VesselHashes { get; set; }
 
-            public object ToObject(IContentSerializer contentSerializer, IObjectLoader objectLoader, IHashCalculator hashCalculator)
+            public IHashableObject ToHashableObject(IContentSerializer contentSerializer, IObjectLoader objectLoader, IHashCalculator hashCalculator)
             {
                 var vessels =
                     this.VesselHashes

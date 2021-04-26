@@ -34,7 +34,7 @@ namespace TestClient
             var vp = await objectStore.GetObjectContentAsync(hash, contentType);
             var content = vp as IContent;
 
-            var obj = content.ToObject(contentSerializer, objectLoader, hashCalculator);
+            var obj = content.ToHashableObject(contentSerializer, objectLoader, hashCalculator);
         }
 
         private static IConfiguration GetConfiguration()

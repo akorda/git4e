@@ -17,7 +17,7 @@ namespace CrewSchedule
             public string FirstName { get; set; }
             //Compatibilities, etc
 
-            public object ToObject(IContentSerializer contentSerializer, IObjectLoader objectLoader, IHashCalculator hashCalculator)
+            public IHashableObject ToHashableObject(IContentSerializer contentSerializer, IObjectLoader objectLoader, IHashCalculator hashCalculator)
             {
                 return new Seaman(contentSerializer, hashCalculator)
                 {
