@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using Git4e;
 using ProtoBuf;
 
@@ -133,6 +134,15 @@ namespace CrewSchedule
                 SeamanHash = this.Seaman?.Hash
             };
             this.ContentSerializer.SerializeContent(stream, this.Type, content);
+        }
+
+        public override IEnumerable<IHashableObject> ChildObjects
+        {
+            get
+            {
+                if (this.Seaman != null)
+                    yield return this.Seaman;
+            }
         }
     }
 }

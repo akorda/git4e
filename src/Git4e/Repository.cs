@@ -50,7 +50,7 @@ namespace Git4e
             return commit;
         }
 
-        public async Task<Hash> CommitAsync(string author, DateTime when, string message, IHashableObject root, IEnumerable<IHashableObject> otherThanRootObjects, CancellationToken cancellationToken = default)
+        public async Task<Hash> CommitAsync(string author, DateTime when, string message, IHashableObject root, CancellationToken cancellationToken = default)
         {
             var commit = new Commit(this.ContentSerializer, this.HashCalculator)
             {
@@ -64,7 +64,7 @@ namespace Git4e
                 commit.ParentCommitHashes = new[] { this.HeadCommitHash };
             }
 
-            var contents = otherThanRootObjects.Union(new[] { commit, root });
+            var contents = root.GetAllChildObjects().Union(new[] { commit, root });
             await this.ObjectStore.SaveObjectsAsync(contents, cancellationToken);
             this.HeadCommitHash = commit.Hash;
             return commit.Hash;

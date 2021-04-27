@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using ProtoBuf;
 
@@ -58,6 +59,15 @@ namespace Git4e
                 ParentCommitHashes = this.ParentCommitHashes
             };
             this.ContentSerializer.SerializeContent(stream, this.Type, content);
+        }
+
+        public override IEnumerable<IHashableObject> ChildObjects
+        {
+            get
+            {
+                if (this.Root != null)
+                    yield return this.Root;
+            }
         }
     }
 }

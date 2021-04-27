@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
@@ -19,6 +20,8 @@ namespace Git4e
         }
 
         public abstract void SerializeContent(Stream stream);
+
+        public virtual IEnumerable<IHashableObject> ChildObjects { get => new IHashableObject[0]; }
 
         protected void MarkContentAsDirty()
         {

@@ -78,5 +78,14 @@ namespace CrewSchedule
             };
             this.ContentSerializer.SerializeContent(stream, this.Type, content);
         }
+
+        public override IEnumerable<IHashableObject> ChildObjects
+        {
+            get
+            {
+                if (this.Vessels != null) return this.Vessels;
+                return new IHashableObject[0];
+            }
+        }
     }
 }
