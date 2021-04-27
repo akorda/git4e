@@ -2,18 +2,18 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using BPC;
-using BPC.Data;
 using Git4e;
+using Dapper;
+using System.Data.SqlClient;
 
 namespace CrewSchedule
 {
     public class Data
     {
-        public List<Seaman> Seamen { get; private set; }
-        public List<SeamanAssignment> Assignments { get; private set; }
-        public List<VesselPosition> Positions { get; private set; }
-        public List<Vessel> Vessels { get; private set; }
+        public IEnumerable<Seaman> Seamen { get; private set; }
+        public IEnumerable<SeamanAssignment> Assignments { get; private set; }
+        public IEnumerable<VesselPosition> Positions { get; private set; }
+        public IEnumerable<Vessel> Vessels { get; private set; }
         public Plan Plan { get; private set; }
 
         public async Task LoadAsync(
@@ -23,16 +23,9 @@ namespace CrewSchedule
             IHashCalculator hashCalculator,
             CancellationToken cancellationToken = default)
         {
-            Dictionary<string, Seaman> seamenMap;
-            SqlDataLoader.GlobalDbProviderFactory = System.Data.SqlClient.SqlClientFactory.Instance;
-            this.Seamen = new List<Seaman>();
-            this.Assignments = new List<SeamanAssignment>();
-            this.Positions = new List<VesselPosition>();
-            this.Vessels = new List<Vessel>();
-
-            await SqlDataLoader.ConnectAndExecuteAsync(connectionString, async loader =>
+            using (var connection = new SqlConnection(connectionString))
             {
-                var parameters = new[] { new DynamicObjectValue("PlanVersionId", planVersionId) };
+                var planVersionParameter = new { PlanVersionId = planVersionId };
                 var sql = $@"
                     WITH SA AS
                     (
@@ -44,15 +37,17 @@ namespace CrewSchedule
                     FROM md.Vessels V
                     WHERE V.VesselCode IN (SELECT VesselCode FROM SA)
                     ";
-                await loader.TraverseReaderAsync(sql, parameters, reader =>
-                {
-                    var vessel = new Vessel(contentSerializer, hashCalculator)
+
+                var command = new CommandDefinition(sql, parameters: planVersionParameter, cancellationToken: cancellationToken);
+
+                this.Vessels = (await connection.QueryAsync(command))
+                    .Select(row => new Vessel(contentSerializer, hashCalculator)
                     {
-                        VesselCode = reader.GetString("VesselCode"),
-                        Name = reader.GetString("Name")
-                    };
-                    Vessels.Add(vessel);
-                }, cancellationToken);
+                        VesselCode = row.VesselCode,
+                        Name = row.Name
+                    })
+                    .ToArray();
+
                 var vesselsMap = new Dictionary<string, List<VesselPosition>>();
                 foreach (var vessel in Vessels)
                     vesselsMap[vessel.VesselCode] = new List<VesselPosition>();
@@ -69,17 +64,18 @@ namespace CrewSchedule
                     FROM cs.VesselPositions VP
                     RIGHT JOIN SA ON SA.VesselCode = VP.VesselCode AND SA.DutyRankCode = VP.DutyRankCode AND SA.PositionNo = VP.PositionNo
                     ";
-                await loader.TraverseReaderAsync(sql, parameters, reader =>
-                {
-                    var position = new VesselPosition(contentSerializer, hashCalculator)
+
+                command = new CommandDefinition(sql, parameters: planVersionParameter, cancellationToken: cancellationToken);
+                this.Positions = (await connection.QueryAsync(command))
+                    .Select(row => new VesselPosition(contentSerializer, hashCalculator)
                     {
-                        VesselPositionId = reader.GetString("VesselPositionId"),
-                        VesselCode = reader.GetString("VesselCode"),
-                        DutyRankCode = reader.GetString("DutyRankCode"),
-                        PositionNo = reader.GetInt("PositionNo").Value
-                    };
-                    Positions.Add(position);
-                }, cancellationToken);
+                        VesselPositionId = row.VesselPositionId,
+                        VesselCode = row.VesselCode,
+                        DutyRankCode = row.DutyRankCode,
+                        PositionNo = row.PositionNo
+                    })
+                    .ToArray();
+
                 var positionMap = new Dictionary<string, List<SeamanAssignment>>();
                 foreach (var position in Positions)
                     positionMap[$"{position.VesselCode}#{position.DutyRankCode}#{position.PositionNo}"] = new List<SeamanAssignment>();
@@ -88,40 +84,39 @@ namespace CrewSchedule
                     SELECT SeamanAssignmentId, VesselCode, DutyRankCode, PositionNo, StartOverlappingSlot, StartSlot, EndSlot, EndOverlappingSlot, SeamanCode, VesselCode, DutyRankCode, PositionNo
                     FROM cs.SeamanAssignments
                     WHERE PlanVersionId = @PlanVersionId";
-                await loader.TraverseReaderAsync(sql, parameters, reader =>
-                {
-                    var asn = new SeamanAssignment(contentSerializer, hashCalculator)
+                command = new CommandDefinition(sql, parameters: planVersionParameter, cancellationToken: cancellationToken);
+                this.Assignments = (await connection.QueryAsync(command))
+                    .Select(row => new SeamanAssignment(contentSerializer, hashCalculator)
                     {
-                        SeamanAssignmentId = reader.GetString("SeamanAssignmentId"),
-                        StartOverlap = reader.GetInt("StartOverlappingSlot").Value,
-                        StartDuties = reader.GetInt("StartSlot"),
-                        EndDuties = reader.GetInt("EndSlot"),
-                        EndOverlap = reader.GetInt("EndOverlappingSlot").Value,
+                        SeamanAssignmentId = row.SeamanAssignmentId,
+                        StartOverlap = row.StartOverlappingSlot,
+                        StartDuties = row.StartSlot,
+                        EndDuties = row.EndSlot,
+                        EndOverlap = row.EndOverlappingSlot,
                         //In memory only
-                        SeamanCode = reader.GetString("SeamanCode"),
-                        VesselCode = reader.GetString("VesselCode"),
-                        DutyRankCode = reader.GetString("DutyRankCode"),
-                        PositionNo = reader.GetInt("PositionNo").Value
-                    };
-                    Assignments.Add(asn);
-                }, cancellationToken);
+                        SeamanCode = row.SeamanCode,
+                        VesselCode = row.VesselCode,
+                        DutyRankCode = row.DutyRankCode,
+                        PositionNo = row.PositionNo
+                    })
+                    .ToArray();
                 var asnsMap = Assignments.ToDictionary(asn => asn.SeamanAssignmentId);
 
                 sql = $@"
                     SELECT PersonCode, LastName, FirstName
                     FROM cs.Persons WHERE PersonCode IN
                     (SELECT DISTINCT(SeamanCode) FROM cs.SeamanAssignments WHERE PlanVersionId = @PlanVersionId)";
-                await loader.TraverseReaderAsync(sql, parameters, reader =>
-                {
-                    var seaman = new Seaman(contentSerializer, hashCalculator)
+                command = new CommandDefinition(sql, parameters: planVersionParameter, cancellationToken: cancellationToken);
+                this.Seamen = (await connection.QueryAsync(command))
+                    .Select(row => new Seaman(contentSerializer, hashCalculator)
                     {
-                        SeamanCode = reader.GetString("PersonCode"),
-                        LastName = reader.GetString("LastName"),
-                        FirstName = reader.GetString("FirstName")
-                    };
-                    Seamen.Add(seaman);
-                }, cancellationToken);
-                seamenMap = Seamen.ToDictionary(s => s.SeamanCode);
+                        SeamanCode = row.PersonCode,
+                        LastName = row.LastName,
+                        FirstName = row.FirstName
+                    })
+                    .ToArray();
+
+                var seamenMap = Seamen.ToDictionary(s => s.SeamanCode);
 
                 foreach (var asn in Assignments)
                 {
@@ -153,7 +148,7 @@ namespace CrewSchedule
                     PlanVersionId = planVersionId,
                     Vessels = Vessels.ToArray()
                 };
-            }, cancellationToken);
+            }
         }
     }
 }

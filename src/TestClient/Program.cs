@@ -25,11 +25,11 @@ namespace TestClient
             var hashCalculator = serviceProvider.GetService<IHashCalculator>();
             var repository = serviceProvider.GetService<IRepository>();
 
-            var hashText = "0DE2E8A3EE25CE13C495F233F7D54BC9D9A384A1";//"0D194020D7392882A204E7F2F07D662E296067AD";//"318E1B51F019624B0D6ACBA2D2BDE1DC71A91DF7";
-            var hash = new Hash(hashText);
-            var commit = await repository.CheckoutAsync(hash);
-            Hash parentCommitHash = commit.Hash;
-            //Hash parentCommitHash = null;
+            //var hashText = "0DE2E8A3EE25CE13C495F233F7D54BC9D9A384A1";//"0D194020D7392882A204E7F2F07D662E296067AD";//"318E1B51F019624B0D6ACBA2D2BDE1DC71A91DF7";
+            //var hash = new Hash(hashText);
+            //var commit = await repository.CheckoutAsync(hash);
+            //Hash parentCommitHash = commit.Hash;
+            Hash parentCommitHash = null;
 
             var commitHash = await LoadDataAndCommit(configuration, contentSerializer, repository, hashCalculator, parentCommitHash, cancellationToken);
 
