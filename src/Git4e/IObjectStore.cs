@@ -11,6 +11,5 @@ namespace Git4e
         Task SaveObjectsAsync(IEnumerable<IHashableObject> contents, CancellationToken cancellationToken = default);
         Task<string> GetObjectTypeAsync(Hash hash, CancellationToken cancellationToken = default);
         Task<object> GetObjectContentAsync(Hash hash, Type contentType, CancellationToken cancellationToken = default);
-        Task<Hash> AddCommit(Commit commit, CancellationToken cancellationToken = default);
     }
 }

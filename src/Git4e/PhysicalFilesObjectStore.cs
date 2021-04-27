@@ -135,37 +135,5 @@ namespace Git4e
             }
             return Task.FromResult(content);
         }
-
-        public Task<Hash> AddCommit(Commit commit, CancellationToken cancellationToken = default)
-        {
-            var root = this.Options.RootDirectory;
-            var hash = commit.Hash;
-            var hashText = hash.ToString();
-            var objectDirectoryName = hashText.Substring(0, ObjectDirLength);
-            var objectDirectory = Path.Combine(root, objectDirectoryName);
-            var filename = hashText.Substring(ObjectDirLength);
-            var path = Path.Combine(objectDirectory, filename);
-
-            if (File.Exists(path))
-            {
-                //fast exit. no need to write anything
-                return Task.FromResult(hash);
-            }
-
-            if (!Directory.Exists(root))
-            {
-                Directory.CreateDirectory(root);
-            }
-
-            if (!Directory.Exists(objectDirectory))
-            {
-                Directory.CreateDirectory(objectDirectory);
-            }
-
-            using (var stream = new FileStream(path, FileMode.CreateNew))
-                commit.SerializeContent(stream);
-
-            return Task.FromResult(hash);
-        }
     }
 }
