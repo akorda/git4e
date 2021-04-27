@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.Extensions.DependencyInjection;
 using ProtoBuf;
 
 namespace Git4e
@@ -23,16 +24,15 @@ namespace Git4e
             [ProtoMember(5)]
             public Hash[] ParentCommitHashes { get; set; }
 
-            public IHashableObject ToHashableObject(IContentSerializer contentSerializer, IObjectLoader objectLoader, IHashCalculator hashCalculator)
+            public IHashableObject ToHashableObject(IServiceProvider serviceProvider, IObjectLoader objectLoader)
             {
-                return new Commit(contentSerializer, hashCalculator)
-                {
-                    Author = this.Author,
-                    When = this.When,
-                    Message = this.Message,
-                    Root = objectLoader.GetObjectByHash(this.RootHash).Result,
-                    ParentCommitHashes = this.ParentCommitHashes
-                };
+                var commit = ActivatorUtilities.CreateInstance<Commit>(serviceProvider);
+                commit.Author = this.Author;
+                commit.When = this.When;
+                commit.Message = this.Message;
+                commit.Root = objectLoader.GetObjectByHash(this.RootHash).Result;
+                commit.ParentCommitHashes = this.ParentCommitHashes;
+                return commit;
             }
         }
 

@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Git4e;
+using Microsoft.Extensions.DependencyInjection;
 using ProtoBuf;
 
 namespace CrewSchedule
@@ -16,7 +18,7 @@ namespace CrewSchedule
             [ProtoMember(2)]
             public Hash[] VesselHashes { get; set; }
 
-            public IHashableObject ToHashableObject(IContentSerializer contentSerializer, IObjectLoader objectLoader, IHashCalculator hashCalculator)
+            public IHashableObject ToHashableObject(IServiceProvider serviceProvider, IObjectLoader objectLoader)
             {
                 var vessels =
                     this.VesselHashes
@@ -24,11 +26,10 @@ namespace CrewSchedule
                     .Select(hash => objectLoader.GetObjectByHash(hash).Result)
                     .Cast<Vessel>()
                     .ToArray();
-                return new Plan(contentSerializer, hashCalculator)
-                {
-                    PlanVersionId = this.PlanVersionId,
-                    Vessels = vessels
-                };
+                var plan = ActivatorUtilities.CreateInstance<Plan>(serviceProvider);
+                plan.PlanVersionId = this.PlanVersionId;
+                plan.Vessels = vessels;
+                return plan;
             }
         }
 

@@ -1,7 +1,9 @@
-﻿namespace Git4e
+﻿using System;
+
+namespace Git4e
 {
     public interface IContent
     {
-        IHashableObject ToHashableObject(IContentSerializer contentSerializer, IObjectLoader objectLoader, IHashCalculator hashCalculator);
+        IHashableObject ToHashableObject(IServiceProvider serviceProvider, IObjectLoader objectLoader);
     }
 }

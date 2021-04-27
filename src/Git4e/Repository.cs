@@ -3,30 +3,28 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Git4e
 {
     public class Repository : IRepository
     {
+        public IServiceProvider ServiceProvider { get; }
         public IObjectStore ObjectStore { get; }
         public IContentTypeResolver ContentTypeResolver { get; }
         public IObjectLoader ObjectLoader { get; }
-        public IContentSerializer ContentSerializer { get; }
-        public IHashCalculator HashCalculator { get; }
 
         public Repository(
+            IServiceProvider serviceProvider,
             IObjectStore objectStore,
             IContentTypeResolver contentTypeResolver,
-            IObjectLoader objectLoader = null,
-            IContentSerializer contentSerializer = null,
-            IHashCalculator hashCalculator = null
+            IObjectLoader objectLoader = null
             )
         {
+            this.ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.ObjectStore = objectStore ?? throw new ArgumentNullException(nameof(objectStore));
             this.ContentTypeResolver = contentTypeResolver ?? throw new ArgumentNullException(nameof(contentTypeResolver));
             this.ObjectLoader = objectLoader;
-            this.ContentSerializer = contentSerializer;
-            this.HashCalculator = hashCalculator;
         }
 
         public Hash HeadCommitHash { get; private set; }
@@ -42,7 +40,7 @@ namespace Git4e
             var contentType = this.ContentTypeResolver.ResolveContentType(contentTypeName);
             var objectContent = await this.ObjectStore.GetObjectContentAsync(commitHash, contentType, cancellationToken);
             var commitContent = objectContent as Commit.CommitContent;
-            var commit = commitContent.ToHashableObject(this.ContentSerializer, this.ObjectLoader, this.HashCalculator) as Commit;
+            var commit = commitContent.ToHashableObject(this.ServiceProvider, this.ObjectLoader) as Commit;
             if (commit != null)
             {
                 this.HeadCommitHash = commit.Hash;
@@ -52,13 +50,12 @@ namespace Git4e
 
         public async Task<Hash> CommitAsync(string author, DateTime when, string message, IHashableObject root, CancellationToken cancellationToken = default)
         {
-            var commit = new Commit(this.ContentSerializer, this.HashCalculator)
-            {
-                Author = author,
-                When = when,
-                Message = message,
-                Root = root
-            };
+            var commit = ActivatorUtilities.CreateInstance<Commit>(this.ServiceProvider);
+            commit.Author = author;
+            commit.When = when;
+            commit.Message = message;
+            commit.Root = root;
+
             if (this.HeadCommitHash != null)
             {
                 commit.ParentCommitHashes = new[] { this.HeadCommitHash };

@@ -8,22 +8,22 @@ namespace Git4e
     {
         readonly Dictionary<string, IHashableObject> ObjectCache = new Dictionary<string, IHashableObject>();
 
+        public IServiceProvider ServiceProvider { get; }
         public IObjectStore ObjectStore { get; }
         public IContentSerializer ContentSerializer { get; }
-        public IHashCalculator HashCalculator { get; }
         public IContentTypeResolver ContentTypeResolver { get; }
         public IContentToObjectConverter ContentToObjectConverter { get; }
 
         public ObjectLoader(
+            IServiceProvider serviceProvider,
             IObjectStore objectStore,
             IContentSerializer contentSerializer,
-            IHashCalculator hashCalculator,
             IContentTypeResolver contentTypeResolver,
             IContentToObjectConverter contentToObjectConverter = null)
         {
+            this.ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.ObjectStore = objectStore ?? throw new ArgumentNullException(nameof(objectStore));
             this.ContentSerializer = contentSerializer ?? throw new ArgumentNullException(nameof(contentSerializer));
-            this.HashCalculator = hashCalculator ?? throw new ArgumentNullException(nameof(hashCalculator));
             this.ContentTypeResolver = contentTypeResolver ?? throw new ArgumentNullException(nameof(contentTypeResolver));
             this.ContentToObjectConverter = contentToObjectConverter;
         }
@@ -48,11 +48,11 @@ namespace Git4e
 
             if (objectContent is IContent content)
             {
-                obj = content.ToHashableObject(this.ContentSerializer, this, this.HashCalculator);
+                obj = content.ToHashableObject(this.ServiceProvider, this);
             }
             else
             {
-                obj = this.ContentToObjectConverter?.ToObject(objectContent, this.ContentSerializer, this, this.HashCalculator);
+                obj = this.ContentToObjectConverter?.ToObject(objectContent, this.ServiceProvider, this.ContentSerializer, this);
             }
 
             this.ObjectCache[hashText] = obj;

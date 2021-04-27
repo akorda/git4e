@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,11 +17,9 @@ namespace TestClient
 
             var configuration = GetConfiguration();
             var serviceProvider = CreateServiceProvider();
-            var contentSerializer = serviceProvider.GetService<IContentSerializer>();
             var objectStore = serviceProvider.GetService<IObjectStore>();
             var contentTypeResolver = serviceProvider.GetService<IContentTypeResolver>();
             var objectLoader = serviceProvider.GetService<IObjectLoader>();
-            var hashCalculator = serviceProvider.GetService<IHashCalculator>();
             var repository = serviceProvider.GetService<IRepository>();
 
             var hashText = "8A9FB8AC7BE2BA2FA7BBC3013F8BCC71C55EB2A9";//"0D194020D7392882A204E7F2F07D662E296067AD";//"318E1B51F019624B0D6ACBA2D2BDE1DC71A91DF7";
@@ -31,26 +28,26 @@ namespace TestClient
             Hash parentCommitHash = commit.Hash;
             //Hash parentCommitHash = null;
 
-            var commitHash = await LoadDataAndCommit(configuration, contentSerializer, repository, hashCalculator, parentCommitHash, cancellationToken);
+            var commitHash = await LoadDataAndCommit(configuration, serviceProvider, repository, cancellationToken);
 
             //load a full-object from hash
             var contentTypeName = await objectStore.GetObjectTypeAsync(commitHash);
             var contentType = contentTypeResolver.ResolveContentType(contentTypeName);
             var objectContent = await objectStore.GetObjectContentAsync(commitHash, contentType);
             var commitContent = objectContent as Commit.CommitContent;
-            var loadedCommit = commitContent.ToHashableObject(contentSerializer, objectLoader, hashCalculator) as Commit;
+            var loadedCommit = commitContent.ToHashableObject(serviceProvider, objectLoader) as Commit;
             parentCommitHash = loadedCommit.ParentCommitHashes?.FirstOrDefault();
             if (parentCommitHash != null)
             {
                 objectContent = await objectStore.GetObjectContentAsync(parentCommitHash, contentType);
                 commitContent = objectContent as Commit.CommitContent;
-                var parentCommit = commitContent.ToHashableObject(contentSerializer, objectLoader, hashCalculator) as Commit;
+                var parentCommit = commitContent.ToHashableObject(serviceProvider, objectLoader) as Commit;
                 parentCommitHash = parentCommit.ParentCommitHashes?.FirstOrDefault();
                 if (parentCommitHash != null)
                 {
                     objectContent = await objectStore.GetObjectContentAsync(parentCommitHash, contentType);
                     commitContent = objectContent as Commit.CommitContent;
-                    parentCommit = commitContent.ToHashableObject(contentSerializer, objectLoader, hashCalculator) as Commit;
+                    parentCommit = commitContent.ToHashableObject(serviceProvider, objectLoader) as Commit;
                 }
             }
         }
@@ -63,21 +60,13 @@ namespace TestClient
                 .Build();
         }
 
-        private static async Task<Hash> LoadDataAndCommit(IConfiguration configuration, IContentSerializer contentSerializer, IRepository repository, IHashCalculator hashCalculator, Hash parentCommitHash, CancellationToken cancellationToken)
+        private static async Task<Hash> LoadDataAndCommit(IConfiguration configuration, IServiceProvider serviceProvider, IRepository repository, CancellationToken cancellationToken)
         {
             var connectionString = configuration.GetConnectionString("CrewSchedule");
             var planVersionId = "1";
 
             var data = new Data();
-            await data.LoadAsync(connectionString, planVersionId, contentSerializer, hashCalculator, cancellationToken);
-
-            var contents = new List<IHashableObject>();
-            contents.AddRange(data.Vessels);
-            contents.AddRange(data.Seamen);
-            contents.AddRange(data.Assignments);
-            contents.AddRange(data.Positions);
-            //contents.Add(data.Plan);
-            //contents.Add(commit);
+            await data.LoadAsync(connectionString, planVersionId, serviceProvider, cancellationToken);
 
             var commitHash = await repository.CommitAsync("akorda", DateTime.Now, "Fix CAPs on Athina", data.Plan, cancellationToken);
             return commitHash;

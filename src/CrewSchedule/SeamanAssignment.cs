@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Git4e;
+using Microsoft.Extensions.DependencyInjection;
 using ProtoBuf;
 
 namespace CrewSchedule
@@ -23,18 +25,17 @@ namespace CrewSchedule
             [ProtoMember(6)]
             public Hash SeamanHash { get; set; }
 
-            public IHashableObject ToHashableObject(IContentSerializer contentSerializer, IObjectLoader objectLoader, IHashCalculator hashCalculator)
+            public IHashableObject ToHashableObject(IServiceProvider serviceProvider, IObjectLoader objectLoader)
             {
                 var seaman = objectLoader.GetObjectByHash(this.SeamanHash).Result as Seaman;
-                return new SeamanAssignment(contentSerializer, hashCalculator)
-                {
-                    SeamanAssignmentId = this.SeamanAssignmentId,
-                    StartOverlap = this.StartOverlap,
-                    StartDuties = this.StartDuties,
-                    EndDuties = this.EndDuties,
-                    EndOverlap = this.EndOverlap,
-                    Seaman = seaman
-                };
+                var assignment = ActivatorUtilities.CreateInstance<SeamanAssignment>(serviceProvider);
+                assignment.SeamanAssignmentId = this.SeamanAssignmentId;
+                assignment.StartOverlap = this.StartOverlap;
+                assignment.StartDuties = this.StartDuties;
+                assignment.EndDuties = this.EndDuties;
+                assignment.EndOverlap = this.EndOverlap;
+                assignment.Seaman = seaman;
+                return assignment;
             }
         }
 

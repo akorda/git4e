@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Git4e;
 using Dapper;
-using System.Data.SqlClient;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CrewSchedule
 {
@@ -19,8 +20,7 @@ namespace CrewSchedule
         public async Task LoadAsync(
             string connectionString,
             string planVersionId,
-            IContentSerializer contentSerializer,
-            IHashCalculator hashCalculator,
+            IServiceProvider serviceProvider,
             CancellationToken cancellationToken = default)
         {
             using (var connection = new SqlConnection(connectionString))
@@ -41,10 +41,12 @@ namespace CrewSchedule
                 var command = new CommandDefinition(sql, parameters: planVersionParameter, cancellationToken: cancellationToken);
 
                 this.Vessels = (await connection.QueryAsync(command))
-                    .Select(row => new Vessel(contentSerializer, hashCalculator)
+                    .Select(row =>
                     {
-                        VesselCode = row.VesselCode,
-                        Name = row.Name
+                        var vessel = ActivatorUtilities.CreateInstance<Vessel>(serviceProvider);
+                        vessel.VesselCode = row.VesselCode;
+                        vessel.Name = row.Name;
+                        return vessel;
                     })
                     .ToArray();
 
@@ -67,12 +69,14 @@ namespace CrewSchedule
 
                 command = new CommandDefinition(sql, parameters: planVersionParameter, cancellationToken: cancellationToken);
                 this.Positions = (await connection.QueryAsync(command))
-                    .Select(row => new VesselPosition(contentSerializer, hashCalculator)
+                    .Select(row =>
                     {
-                        VesselPositionId = row.VesselPositionId,
-                        VesselCode = row.VesselCode,
-                        DutyRankCode = row.DutyRankCode,
-                        PositionNo = row.PositionNo
+                        var position = ActivatorUtilities.CreateInstance<VesselPosition>(serviceProvider);
+                        position.VesselPositionId = row.VesselPositionId;
+                        position.VesselCode = row.VesselCode;
+                        position.DutyRankCode = row.DutyRankCode;
+                        position.PositionNo = row.PositionNo;
+                        return position;
                     })
                     .ToArray();
 
@@ -86,18 +90,20 @@ namespace CrewSchedule
                     WHERE PlanVersionId = @PlanVersionId";
                 command = new CommandDefinition(sql, parameters: planVersionParameter, cancellationToken: cancellationToken);
                 this.Assignments = (await connection.QueryAsync(command))
-                    .Select(row => new SeamanAssignment(contentSerializer, hashCalculator)
+                    .Select(row =>
                     {
-                        SeamanAssignmentId = row.SeamanAssignmentId,
-                        StartOverlap = row.StartOverlappingSlot,
-                        StartDuties = row.StartSlot,
-                        EndDuties = row.EndSlot,
-                        EndOverlap = row.EndOverlappingSlot,
+                        var assignment = ActivatorUtilities.CreateInstance<SeamanAssignment>(serviceProvider);
+                        assignment.SeamanAssignmentId = row.SeamanAssignmentId;
+                        assignment.StartOverlap = row.StartOverlappingSlot;
+                        assignment.StartDuties = row.StartSlot;
+                        assignment.EndDuties = row.EndSlot;
+                        assignment.EndOverlap = row.EndOverlappingSlot;
                         //In memory only
-                        SeamanCode = row.SeamanCode,
-                        VesselCode = row.VesselCode,
-                        DutyRankCode = row.DutyRankCode,
-                        PositionNo = row.PositionNo
+                        assignment.SeamanCode = row.SeamanCode;
+                        assignment.VesselCode = row.VesselCode;
+                        assignment.DutyRankCode = row.DutyRankCode;
+                        assignment.PositionNo = row.PositionNo;
+                        return assignment;
                     })
                     .ToArray();
                 var asnsMap = Assignments.ToDictionary(asn => asn.SeamanAssignmentId);
@@ -108,11 +114,13 @@ namespace CrewSchedule
                     (SELECT DISTINCT(SeamanCode) FROM cs.SeamanAssignments WHERE PlanVersionId = @PlanVersionId)";
                 command = new CommandDefinition(sql, parameters: planVersionParameter, cancellationToken: cancellationToken);
                 this.Seamen = (await connection.QueryAsync(command))
-                    .Select(row => new Seaman(contentSerializer, hashCalculator)
+                    .Select(row =>
                     {
-                        SeamanCode = row.PersonCode,
-                        LastName = row.LastName,
-                        FirstName = row.FirstName
+                        var seaman = ActivatorUtilities.CreateInstance<Seaman>(serviceProvider);
+                        seaman.SeamanCode = row.PersonCode;
+                        seaman.LastName = row.LastName;
+                        seaman.FirstName = row.FirstName;
+                        return seaman;
                     })
                     .ToArray();
 
@@ -143,11 +151,9 @@ namespace CrewSchedule
                 foreach (var position in Positions)
                     position.SeamanAssignments = positionMap[$"{position.VesselCode}#{position.DutyRankCode}#{position.PositionNo}"].AsEnumerable();
 
-                this.Plan = new Plan(contentSerializer, hashCalculator)
-                {
-                    PlanVersionId = planVersionId,
-                    Vessels = Vessels.ToArray()
-                };
+                this.Plan = ActivatorUtilities.CreateInstance<Plan>(serviceProvider);
+                this.Plan.PlanVersionId = planVersionId;
+                this.Plan.Vessels = Vessels.ToArray();
             }
         }
     }

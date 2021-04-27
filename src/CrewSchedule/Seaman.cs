@@ -1,5 +1,7 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Git4e;
+using Microsoft.Extensions.DependencyInjection;
 using ProtoBuf;
 
 namespace CrewSchedule
@@ -17,14 +19,13 @@ namespace CrewSchedule
             public string FirstName { get; set; }
             //Compatibilities, etc
 
-            public IHashableObject ToHashableObject(IContentSerializer contentSerializer, IObjectLoader objectLoader, IHashCalculator hashCalculator)
+            public IHashableObject ToHashableObject(IServiceProvider serviceProvider, IObjectLoader objectLoader)
             {
-                return new Seaman(contentSerializer, hashCalculator)
-                {
-                    SeamanCode = this.SeamanCode,
-                    LastName = this.LastName,
-                    FirstName = this.FirstName
-                };
+                var seaman = ActivatorUtilities.CreateInstance<Seaman>(serviceProvider);
+                seaman.SeamanCode = this.SeamanCode;
+                seaman.LastName = this.LastName;
+                seaman.FirstName = this.FirstName;
+                return seaman;
             }
         }
 
