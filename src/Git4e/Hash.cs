@@ -10,7 +10,11 @@ namespace Git4e
     public class Hash
     {
         [ProtoMember(1)]
-        public byte[] RawHash { get; }
+        public byte[] RawHash { get; set; }//todo: set is created only to support JsonSerialization
+
+        public Hash()
+        {
+        }
 
         public Hash(byte[] rawHash)
         {

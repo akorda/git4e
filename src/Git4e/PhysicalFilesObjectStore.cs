@@ -110,10 +110,11 @@ namespace Git4e
 
             string type;
             using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read))
-            using (var reader = new BinaryReader(stream))
-            {
-                type = reader.ReadString();
-            }
+            //using (var reader = new BinaryReader(stream))
+            //{
+            //    type = reader.ReadString();
+            //}
+                type = this.ContentSerializer.GetObjectTypeAsync(stream);
             return Task.FromResult(type);
         }
 

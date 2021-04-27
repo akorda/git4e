@@ -7,5 +7,6 @@ namespace Git4e
     {
         void SerializeContent(Stream stream, string type, object content);
         object DeserializeContent(Stream stream, Type contentType);
+        string GetObjectTypeAsync(Stream stream);
     }
 }

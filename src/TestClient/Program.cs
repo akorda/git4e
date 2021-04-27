@@ -22,7 +22,7 @@ namespace TestClient
             var objectLoader = serviceProvider.GetService<IObjectLoader>();
             var repository = serviceProvider.GetService<IRepository>();
 
-            var hashText = "8A9FB8AC7BE2BA2FA7BBC3013F8BCC71C55EB2A9";//"0D194020D7392882A204E7F2F07D662E296067AD";//"318E1B51F019624B0D6ACBA2D2BDE1DC71A91DF7";
+            var hashText = "EB217FB7A50A32C986D24C5A4E8C6F592AE9AB43";//            "8A9FB8AC7BE2BA2FA7BBC3013F8BCC71C55EB2A9";//"0D194020D7392882A204E7F2F07D662E296067AD";//"318E1B51F019624B0D6ACBA2D2BDE1DC71A91DF7";
             var hash = new Hash(hashText);
             var commit = await repository.CheckoutAsync(hash);
             Hash parentCommitHash = commit.Hash;
@@ -76,7 +76,8 @@ namespace TestClient
         {
             return new ServiceCollection()
                 .AddLogging()
-                .AddSingleton<IContentSerializer, ProtobufContentSerializer>()
+                //.AddSingleton<IContentSerializer, ProtobufContentSerializer>()
+                .AddSingleton<IContentSerializer, JsonContentSerializer>()
                 .AddSingleton<IHashCalculator, SHA1HashCalculator>()
                 .AddSingleton<IContentTypeResolver>(CreateContentTypeResolver())
                 .AddSingleton<PhysicalFilesObjectStoreOptions>()

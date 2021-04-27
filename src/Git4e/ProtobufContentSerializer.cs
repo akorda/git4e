@@ -51,5 +51,11 @@ namespace Git4e
             var type = reader.ReadString();
             return type;
         }
+
+        public string GetObjectTypeAsync(Stream stream)
+        {
+            var type = ReadHeader(stream);
+            return type;
+        }
     }
 }
