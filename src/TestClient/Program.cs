@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CrewSchedule;
@@ -22,8 +23,16 @@ namespace TestClient
             var contentTypeResolver = serviceProvider.GetService<IContentTypeResolver>();
             var objectLoader = serviceProvider.GetService<IObjectLoader>();
             var hashCalculator = serviceProvider.GetService<IHashCalculator>();
+            var hashToTextConverter = serviceProvider.GetService<IHashToTextConverter>();
+            var repository = serviceProvider.GetService<IRepository>();
 
-            var commitHash = await LoadDataAndCommit(configuration, contentSerializer, objectStore, hashCalculator, cancellationToken);
+            var hashText = "0D194020D7392882A204E7F2F07D662E296067AD";//"318E1B51F019624B0D6ACBA2D2BDE1DC71A91DF7";
+            var hash = hashToTextConverter.ConvertTextToHash(hashText);
+            var commit = await repository.CheckoutAsync(hash);
+            byte[] parentCommitHash = commit.Hash;
+            //byte[] parentCommitHash = null;
+
+            var commitHash = await LoadDataAndCommit(configuration, contentSerializer, objectStore, hashCalculator, parentCommitHash, cancellationToken);
 
             //load a full-object from hash
             var contentTypeName = await objectStore.GetObjectTypeAsync(commitHash);
@@ -31,6 +40,20 @@ namespace TestClient
             var objectContent = await objectStore.GetObjectContentAsync(commitHash, contentType);
             var commitContent = objectContent as Commit.CommitContent;
             var loadedCommit = commitContent.ToHashableObject(contentSerializer, objectLoader, hashCalculator) as Commit;
+            parentCommitHash = loadedCommit.ParentCommitHashes?.FirstOrDefault();
+            if (parentCommitHash != null)
+            {
+                objectContent = await objectStore.GetObjectContentAsync(parentCommitHash, contentType);
+                commitContent = objectContent as Commit.CommitContent;
+                var parentCommit = commitContent.ToHashableObject(contentSerializer, objectLoader, hashCalculator) as Commit;
+                parentCommitHash = parentCommit.ParentCommitHashes?.FirstOrDefault();
+                if (parentCommitHash != null)
+                {
+                    objectContent = await objectStore.GetObjectContentAsync(parentCommitHash, contentType);
+                    commitContent = objectContent as Commit.CommitContent;
+                    parentCommit = commitContent.ToHashableObject(contentSerializer, objectLoader, hashCalculator) as Commit;
+                }
+            }
         }
 
         private static IConfiguration GetConfiguration()
@@ -41,7 +64,7 @@ namespace TestClient
                 .Build();
         }
 
-        private static async Task<byte[]> LoadDataAndCommit(IConfiguration configuration, IContentSerializer contentSerializer, IObjectStore objectStore, IHashCalculator hashCalculator, CancellationToken cancellationToken)
+        private static async Task<byte[]> LoadDataAndCommit(IConfiguration configuration, IContentSerializer contentSerializer, IObjectStore objectStore, IHashCalculator hashCalculator, byte[] parentCommitHash, CancellationToken cancellationToken)
         {
             var connectionString = configuration.GetConnectionString("CrewSchedule");
             var planVersionId = "1";
@@ -56,6 +79,10 @@ namespace TestClient
                 Message = "Fix CAPs on Athina",
                 Root = data.Plan
             };
+            if (parentCommitHash != null)
+            {
+                commit.ParentCommitHashes = new[] { parentCommitHash };
+            }
 
             var contents = new List<IHashableObject>();
             contents.AddRange(data.Vessels);
@@ -82,6 +109,7 @@ namespace TestClient
                 .AddSingleton<PhysicalFilesObjectStoreOptions>()
                 .AddSingleton<IObjectStore, PhysicalFilesObjectStore>()
                 .AddSingleton<IObjectLoader, ObjectLoader>()
+                .AddSingleton<IRepository, Repository>()
                 .BuildServiceProvider();
         }
 

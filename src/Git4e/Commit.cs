@@ -6,6 +6,8 @@ namespace Git4e
 {
     public class Commit : HashableObject
     {
+        public const string ContentTypeName = "Commit";
+
         [ProtoContract]
         public class CommitContent : IContent
         {
@@ -18,7 +20,7 @@ namespace Git4e
             [ProtoMember(4)]
             public byte[] RootHash { get; set; }
             [ProtoMember(5)]
-            public string[] ParentCommitHashes { get; set; }
+            public byte[][] ParentCommitHashes { get; set; }
 
             public IHashableObject ToHashableObject(IContentSerializer contentSerializer, IObjectLoader objectLoader, IHashCalculator hashCalculator)
             {
@@ -37,10 +39,10 @@ namespace Git4e
         public DateTime CommitDate { get; set; }
         public string Message { get; set; }
         public IHashableObject Root { get; set; }
-        public string[] ParentCommitHashes { get; set; }
+        public byte[][] ParentCommitHashes { get; set; }
 
         public Commit(IContentSerializer contentSerializer, IHashCalculator hashCalculator)
-            : base("Commit", contentSerializer, hashCalculator)
+            : base(ContentTypeName, contentSerializer, hashCalculator)
         {
         }
 
