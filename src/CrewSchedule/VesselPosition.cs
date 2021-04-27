@@ -24,7 +24,7 @@ namespace CrewSchedule
             public int PositionNo { get; set; }
 
             [ProtoMember(5)]
-            public byte[][] SeamanAssignmentHashes { get; set; }
+            public Hash[] SeamanAssignmentHashes { get; set; }
 
             public IHashableObject ToHashableObject(IContentSerializer contentSerializer, IObjectLoader objectLoader, IHashCalculator hashCalculator)
             {

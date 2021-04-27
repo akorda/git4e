@@ -8,7 +8,6 @@ namespace Git4e
     {
         readonly Dictionary<string, IHashableObject> ObjectCache = new Dictionary<string, IHashableObject>();
 
-        public IHashToTextConverter HashToTextConverter { get; }
         public IObjectStore ObjectStore { get; }
         public IContentSerializer ContentSerializer { get; }
         public IHashCalculator HashCalculator { get; }
@@ -16,14 +15,12 @@ namespace Git4e
         public IContentToObjectConverter ContentToObjectConverter { get; }
 
         public ObjectLoader(
-            IHashToTextConverter hashToTextConverter,
             IObjectStore objectStore,
             IContentSerializer contentSerializer,
             IHashCalculator hashCalculator,
             IContentTypeResolver contentTypeResolver,
             IContentToObjectConverter contentToObjectConverter = null)
         {
-            this.HashToTextConverter = hashToTextConverter ?? throw new ArgumentNullException(nameof(hashToTextConverter));
             this.ObjectStore = objectStore ?? throw new ArgumentNullException(nameof(objectStore));
             this.ContentSerializer = contentSerializer ?? throw new ArgumentNullException(nameof(contentSerializer));
             this.HashCalculator = hashCalculator ?? throw new ArgumentNullException(nameof(hashCalculator));
@@ -31,12 +28,12 @@ namespace Git4e
             this.ContentToObjectConverter = contentToObjectConverter;
         }
 
-        public async Task<IHashableObject> GetObjectByHash(byte[] hash)
+        public async Task<IHashableObject> GetObjectByHash(Hash hash)
         {
             if (hash == null)
                 return null;
 
-            var hashText = this.HashToTextConverter.ConvertHashToText(hash);
+            var hashText = hash.ToString();
 
             if (this.ObjectCache.TryGetValue(hashText, out var obj))
             {

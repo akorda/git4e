@@ -7,7 +7,7 @@ namespace Git4e
     {
         private static readonly HashAlgorithm Sha1 = SHA1.Create();
 
-        public byte[] ComputeHash(Stream stream)
+        public Hash ComputeHash(Stream stream)
         {
             return Sha1.ComputeHash(stream);
         }

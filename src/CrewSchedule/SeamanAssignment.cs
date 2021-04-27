@@ -20,7 +20,7 @@ namespace CrewSchedule
             [ProtoMember(5)]
             public int EndOverlap { get; set; }
             [ProtoMember(6)]
-            public byte[] SeamanHash { get; set; }
+            public Hash SeamanHash { get; set; }
 
             public IHashableObject ToHashableObject(IContentSerializer contentSerializer, IObjectLoader objectLoader, IHashCalculator hashCalculator)
             {

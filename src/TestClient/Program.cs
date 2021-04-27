@@ -23,14 +23,13 @@ namespace TestClient
             var contentTypeResolver = serviceProvider.GetService<IContentTypeResolver>();
             var objectLoader = serviceProvider.GetService<IObjectLoader>();
             var hashCalculator = serviceProvider.GetService<IHashCalculator>();
-            var hashToTextConverter = serviceProvider.GetService<IHashToTextConverter>();
             var repository = serviceProvider.GetService<IRepository>();
 
-            var hashText = "4351BB84759C56CACCBE860E0C77AD3AA4DC3857";//"0D194020D7392882A204E7F2F07D662E296067AD";//"318E1B51F019624B0D6ACBA2D2BDE1DC71A91DF7";
-            var hash = hashToTextConverter.ConvertTextToHash(hashText);
+            var hashText = "0DE2E8A3EE25CE13C495F233F7D54BC9D9A384A1";//"0D194020D7392882A204E7F2F07D662E296067AD";//"318E1B51F019624B0D6ACBA2D2BDE1DC71A91DF7";
+            var hash = new Hash(hashText);
             var commit = await repository.CheckoutAsync(hash);
-            byte[] parentCommitHash = commit.Hash;
-            //byte[] parentCommitHash = null;
+            Hash parentCommitHash = commit.Hash;
+            //Hash parentCommitHash = null;
 
             var commitHash = await LoadDataAndCommit(configuration, contentSerializer, repository, hashCalculator, parentCommitHash, cancellationToken);
 
@@ -64,7 +63,7 @@ namespace TestClient
                 .Build();
         }
 
-        private static async Task<byte[]> LoadDataAndCommit(IConfiguration configuration, IContentSerializer contentSerializer, IRepository repository, IHashCalculator hashCalculator, byte[] parentCommitHash, CancellationToken cancellationToken)
+        private static async Task<Hash> LoadDataAndCommit(IConfiguration configuration, IContentSerializer contentSerializer, IRepository repository, IHashCalculator hashCalculator, Hash parentCommitHash, CancellationToken cancellationToken)
         {
             var connectionString = configuration.GetConnectionString("CrewSchedule");
             var planVersionId = "1";
@@ -90,7 +89,6 @@ namespace TestClient
                 .AddLogging()
                 .AddSingleton<IContentSerializer, ProtobufContentSerializer>()
                 .AddSingleton<IHashCalculator, SHA1HashCalculator>()
-                .AddSingleton<IHashToTextConverter, HexHashToTextConverter>()
                 .AddSingleton<IContentTypeResolver>(CreateContentTypeResolver())
                 .AddSingleton<PhysicalFilesObjectStoreOptions>()
                 .AddSingleton<IObjectStore, PhysicalFilesObjectStore>()

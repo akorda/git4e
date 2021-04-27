@@ -14,7 +14,7 @@ namespace CrewSchedule
             [ProtoMember(1)]
             public string PlanVersionId { get; set; }
             [ProtoMember(2)]
-            public byte[][] VesselHashes { get; set; }
+            public Hash[] VesselHashes { get; set; }
 
             public IHashableObject ToHashableObject(IContentSerializer contentSerializer, IObjectLoader objectLoader, IHashCalculator hashCalculator)
             {

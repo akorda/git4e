@@ -4,6 +4,6 @@ namespace Git4e
 {
     public interface IObjectLoader
     {
-        Task<IHashableObject> GetObjectByHash(byte[] hash);
+        Task<IHashableObject> GetObjectByHash(Hash hash);
     }
 }

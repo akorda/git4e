@@ -12,18 +12,15 @@ namespace Git4e
 
         public IContentSerializer ContentSerializer { get; }
         public IHashCalculator HashCalculator { get; }
-        public IHashToTextConverter HashToTextConverter { get; }
         public PhysicalFilesObjectStoreOptions Options { get; }
 
         public PhysicalFilesObjectStore(
             IContentSerializer contentSerializer,
             IHashCalculator hashCalculator,
-            IHashToTextConverter hashToTextConverter,
             PhysicalFilesObjectStoreOptions options = null)
         {
             this.ContentSerializer = contentSerializer ?? throw new ArgumentNullException(nameof(contentSerializer));
             this.HashCalculator = hashCalculator ?? throw new ArgumentNullException(nameof(hashCalculator));
-            this.HashToTextConverter = hashToTextConverter ?? throw new ArgumentNullException(nameof(hashToTextConverter));
             this.Options = options ?? new PhysicalFilesObjectStoreOptions();
         }
 
@@ -31,7 +28,7 @@ namespace Git4e
         {
             var root = this.Options.RootDirectory;
             var hash = content.Hash;
-            var hashText = this.HashToTextConverter.ConvertHashToText(hash);
+            var hashText = hash.ToString();
             var objectDirectoryName = hashText.Substring(0, ObjectDirLength);
             var objectDirectory = Path.Combine(root, objectDirectoryName);
             var filename = hashText.Substring(ObjectDirLength);
@@ -70,7 +67,7 @@ namespace Git4e
             foreach (var content in contents)
             {
                 var hash = content.Hash;
-                var hashText = this.HashToTextConverter.ConvertHashToText(hash);
+                var hashText = hash.ToString();
                 var objectDirectoryName = hashText.Substring(0, ObjectDirLength);
                 var objectDirectory = Path.Combine(root, objectDirectoryName);
                 var filename = hashText.Substring(ObjectDirLength);
@@ -100,9 +97,9 @@ namespace Git4e
             return Task.CompletedTask;
         }
 
-        public Task<string> GetObjectTypeAsync(byte[] hash, CancellationToken cancellationToken = default)
+        public Task<string> GetObjectTypeAsync(Hash hash, CancellationToken cancellationToken = default)
         {
-            var hashText = this.HashToTextConverter.ConvertHashToText(hash);
+            var hashText = hash.ToString();
             var objectDirectoryName = hashText.Substring(0, ObjectDirLength);
             var root = this.Options.RootDirectory;
             var objectDirectory = Path.Combine(root, objectDirectoryName);
@@ -120,9 +117,9 @@ namespace Git4e
             return Task.FromResult(type);
         }
 
-        public Task<object> GetObjectContentAsync(byte[] hash, Type contentType, CancellationToken cancellationToken = default)
+        public Task<object> GetObjectContentAsync(Hash hash, Type contentType, CancellationToken cancellationToken = default)
         {
-            var hashText = this.HashToTextConverter.ConvertHashToText(hash);
+            var hashText = hash.ToString();
             var objectDirectoryName = hashText.Substring(0, ObjectDirLength);
             var root = this.Options.RootDirectory;
             var objectDirectory = Path.Combine(root, objectDirectoryName);
@@ -139,11 +136,11 @@ namespace Git4e
             return Task.FromResult(content);
         }
 
-        public Task<byte[]> AddCommit(Commit commit, CancellationToken cancellationToken = default)
+        public Task<Hash> AddCommit(Commit commit, CancellationToken cancellationToken = default)
         {
             var root = this.Options.RootDirectory;
             var hash = commit.Hash;
-            var hashText = this.HashToTextConverter.ConvertHashToText(hash);
+            var hashText = hash.ToString();
             var objectDirectoryName = hashText.Substring(0, ObjectDirLength);
             var objectDirectory = Path.Combine(root, objectDirectoryName);
             var filename = hashText.Substring(ObjectDirLength);

@@ -7,8 +7,8 @@ namespace Git4e
 {
     public interface IRepository
     {
-        byte[] HeadCommitHash { get; }
-        Task<Commit> CheckoutAsync(byte[] commitHash, CancellationToken cancellationToken = default);
-        Task<byte[]> CommitAsync(string author, DateTime when, string message, IHashableObject root, IEnumerable<IHashableObject> otherThanRootObjects, CancellationToken cancellationToken = default);
+        Hash HeadCommitHash { get; }
+        Task<Commit> CheckoutAsync(Hash commitHash, CancellationToken cancellationToken = default);
+        Task<Hash> CommitAsync(string author, DateTime when, string message, IHashableObject root, IEnumerable<IHashableObject> otherThanRootObjects, CancellationToken cancellationToken = default);
     }
 }

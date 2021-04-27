@@ -23,8 +23,8 @@ namespace Git4e
             _Hash = null;
         }
 
-        private byte[] _Hash;
-        public virtual byte[] Hash
+        private Hash _Hash;
+        public virtual Hash Hash
         {
             get
             {

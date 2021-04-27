@@ -29,9 +29,9 @@ namespace Git4e
             this.HashCalculator = hashCalculator;
         }
 
-        public byte[] HeadCommitHash { get; private set; }
+        public Hash HeadCommitHash { get; private set; }
 
-        public async Task<Commit> CheckoutAsync(byte[] commitHash, CancellationToken cancellationToken = default)
+        public async Task<Commit> CheckoutAsync(Hash commitHash, CancellationToken cancellationToken = default)
         {
             var contentTypeName = await this.ObjectStore.GetObjectTypeAsync(commitHash, cancellationToken);
             if (contentTypeName != Commit.ContentTypeName)
@@ -50,7 +50,7 @@ namespace Git4e
             return commit;
         }
 
-        public async Task<byte[]> CommitAsync(string author, DateTime when, string message, IHashableObject root, IEnumerable<IHashableObject> otherThanRootObjects, CancellationToken cancellationToken = default)
+        public async Task<Hash> CommitAsync(string author, DateTime when, string message, IHashableObject root, IEnumerable<IHashableObject> otherThanRootObjects, CancellationToken cancellationToken = default)
         {
             var commit = new Commit(this.ContentSerializer, this.HashCalculator)
             {
