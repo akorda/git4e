@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace Git4e
 {
+    [DebuggerDisplay("{Type,nq}, {_Hash,nq}")]
     public abstract class HashableObject : IHashableObject
     {
         public string Type { get; private set; }
