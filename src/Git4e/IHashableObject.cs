@@ -7,7 +7,7 @@ namespace Git4e
     {
         string Type { get; }
         void SerializeContent(Stream stream);
-        Hash Hash { get; }
+        string Hash { get; }
         IEnumerable<IHashableObject> ChildObjects { get; }
     }
 }

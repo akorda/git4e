@@ -28,10 +28,9 @@ namespace Git4e
         {
             var root = this.Options.RootDirectory;
             var hash = content.Hash;
-            var hashText = hash.ToString();
-            var objectDirectoryName = hashText.Substring(0, ObjectDirLength);
+            var objectDirectoryName = hash.Substring(0, ObjectDirLength);
             var objectDirectory = Path.Combine(root, objectDirectoryName);
-            var filename = hashText.Substring(ObjectDirLength);
+            var filename = hash.Substring(ObjectDirLength);
             var path = Path.Combine(objectDirectory, filename);
 
             if (File.Exists(path))
@@ -67,10 +66,9 @@ namespace Git4e
             foreach (var content in contents)
             {
                 var hash = content.Hash;
-                var hashText = hash.ToString();
-                var objectDirectoryName = hashText.Substring(0, ObjectDirLength);
+                var objectDirectoryName = hash.Substring(0, ObjectDirLength);
                 var objectDirectory = Path.Combine(root, objectDirectoryName);
-                var filename = hashText.Substring(ObjectDirLength);
+                var filename = hash.Substring(ObjectDirLength);
                 var path = Path.Combine(objectDirectory, filename);
 
                 if (File.Exists(path))
@@ -97,13 +95,12 @@ namespace Git4e
             return Task.CompletedTask;
         }
 
-        public Task<string> GetObjectTypeAsync(Hash hash, CancellationToken cancellationToken = default)
+        public Task<string> GetObjectTypeAsync(string hash, CancellationToken cancellationToken = default)
         {
-            var hashText = hash.ToString();
-            var objectDirectoryName = hashText.Substring(0, ObjectDirLength);
+            var objectDirectoryName = hash.Substring(0, ObjectDirLength);
             var root = this.Options.RootDirectory;
             var objectDirectory = Path.Combine(root, objectDirectoryName);
-            var filename = hashText.Substring(ObjectDirLength);
+            var filename = hash.Substring(ObjectDirLength);
             var path = Path.Combine(objectDirectory, filename);
             if (!File.Exists(path))
                 throw new Exception("");//todo: object not found exception
@@ -118,13 +115,12 @@ namespace Git4e
             return Task.FromResult(type);
         }
 
-        public Task<object> GetObjectContentAsync(Hash hash, Type contentType, CancellationToken cancellationToken = default)
+        public Task<object> GetObjectContentAsync(string hash, Type contentType, CancellationToken cancellationToken = default)
         {
-            var hashText = hash.ToString();
-            var objectDirectoryName = hashText.Substring(0, ObjectDirLength);
+            var objectDirectoryName = hash.Substring(0, ObjectDirLength);
             var root = this.Options.RootDirectory;
             var objectDirectory = Path.Combine(root, objectDirectoryName);
-            var filename = hashText.Substring(ObjectDirLength);
+            var filename = hash.Substring(ObjectDirLength);
             var path = Path.Combine(objectDirectory, filename);
             if (!File.Exists(path))
                 throw new Exception("");//todo: object not found exception

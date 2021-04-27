@@ -28,14 +28,12 @@ namespace Git4e
             this.ContentToObjectConverter = contentToObjectConverter;
         }
 
-        public async Task<IHashableObject> GetObjectByHash(Hash hash)
+        public async Task<IHashableObject> GetObjectByHash(string hash)
         {
             if (hash == null)
                 return null;
 
-            var hashText = hash.ToString();
-
-            if (this.ObjectCache.TryGetValue(hashText, out var obj))
+            if (this.ObjectCache.TryGetValue((string)hash, out var obj))
             {
                 return obj;
             }
@@ -55,7 +53,7 @@ namespace Git4e
                 obj = this.ContentToObjectConverter?.ToObject(objectContent, this.ServiceProvider, this.ContentSerializer, this);
             }
 
-            this.ObjectCache[hashText] = obj;
+            this.ObjectCache[hash] = obj;
 
             return obj;
         }

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Security.Cryptography;
 
 namespace Git4e
@@ -7,9 +8,11 @@ namespace Git4e
     {
         private static readonly HashAlgorithm Sha1 = SHA1.Create();
 
-        public Hash ComputeHash(Stream stream)
+        public string ComputeHash(Stream stream)
         {
-            return Sha1.ComputeHash(stream);
+            var rawHash = Sha1.ComputeHash(stream);
+            var hash = BitConverter.ToString(rawHash).Replace("-", "");
+            return hash;
         }
     }
 }

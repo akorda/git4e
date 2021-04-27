@@ -20,9 +20,9 @@ namespace Git4e
             [ProtoMember(3)]
             public string Message { get; set; }
             [ProtoMember(4)]
-            public Hash RootHash { get; set; }
+            public string RootHash { get; set; }
             [ProtoMember(5)]
-            public Hash[] ParentCommitHashes { get; set; }
+            public string[] ParentCommitHashes { get; set; }
 
             public IHashableObject ToHashableObject(IServiceProvider serviceProvider, IObjectLoader objectLoader)
             {
@@ -40,7 +40,7 @@ namespace Git4e
         public DateTime When { get; set; }
         public string Message { get; set; }
         public IHashableObject Root { get; set; }
-        public Hash[] ParentCommitHashes { get; set; }
+        public string[] ParentCommitHashes { get; set; }
 
         public Commit(IContentSerializer contentSerializer, IHashCalculator hashCalculator)
             : base(ContentTypeName, contentSerializer, hashCalculator)

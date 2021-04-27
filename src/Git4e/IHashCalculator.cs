@@ -4,6 +4,6 @@ namespace Git4e
 {
     public interface IHashCalculator
     {
-        Hash ComputeHash(Stream stream);
+        string ComputeHash(Stream stream);
     }
 }

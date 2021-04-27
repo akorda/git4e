@@ -22,11 +22,10 @@ namespace TestClient
             var objectLoader = serviceProvider.GetService<IObjectLoader>();
             var repository = serviceProvider.GetService<IRepository>();
 
-            var hashText = "8A9FB8AC7BE2BA2FA7BBC3013F8BCC71C55EB2A9";//protobuf
-            //var hashText = "EB217FB7A50A32C986D24C5A4E8C6F592AE9AB43";//json
-            var hash = new Hash(hashText);
+            var hash = "8A9FB8AC7BE2BA2FA7BBC3013F8BCC71C55EB2A9";//protobuf
+            //var hash = "EB217FB7A50A32C986D24C5A4E8C6F592AE9AB43";//json
             var commit = await repository.CheckoutAsync(hash);
-            Hash parentCommitHash = commit.Hash;
+            string parentCommitHash = commit.Hash;
             //Hash parentCommitHash = null;
 
             var commitHash = await LoadDataAndCommit(configuration, serviceProvider, repository, cancellationToken);
@@ -61,7 +60,7 @@ namespace TestClient
                 .Build();
         }
 
-        private static async Task<Hash> LoadDataAndCommit(IConfiguration configuration, IServiceProvider serviceProvider, IRepository repository, CancellationToken cancellationToken)
+        private static async Task<string> LoadDataAndCommit(IConfiguration configuration, IServiceProvider serviceProvider, IRepository repository, CancellationToken cancellationToken)
         {
             var connectionString = configuration.GetConnectionString("CrewSchedule");
             var planVersionId = "1";

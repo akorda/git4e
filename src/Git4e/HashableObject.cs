@@ -28,8 +28,8 @@ namespace Git4e
             _Hash = null;
         }
 
-        private Hash _Hash;
-        public virtual Hash Hash
+        private string _Hash;
+        public virtual string Hash
         {
             get
             {

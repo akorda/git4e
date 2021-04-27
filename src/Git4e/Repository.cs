@@ -27,9 +27,9 @@ namespace Git4e
             this.ObjectLoader = objectLoader;
         }
 
-        public Hash HeadCommitHash { get; private set; }
+        public string HeadCommitHash { get; private set; }
 
-        public async Task<Commit> CheckoutAsync(Hash commitHash, CancellationToken cancellationToken = default)
+        public async Task<Commit> CheckoutAsync(string commitHash, CancellationToken cancellationToken = default)
         {
             var contentTypeName = await this.ObjectStore.GetObjectTypeAsync(commitHash, cancellationToken);
             if (contentTypeName != Commit.ContentTypeName)
@@ -48,7 +48,7 @@ namespace Git4e
             return commit;
         }
 
-        public async Task<Hash> CommitAsync(string author, DateTime when, string message, IHashableObject root, CancellationToken cancellationToken = default)
+        public async Task<string> CommitAsync(string author, DateTime when, string message, IHashableObject root, CancellationToken cancellationToken = default)
         {
             var commit = ActivatorUtilities.CreateInstance<Commit>(this.ServiceProvider);
             commit.Author = author;
