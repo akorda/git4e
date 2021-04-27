@@ -7,7 +7,7 @@ namespace Git4e
     public class Commit : HashableObject
     {
         [ProtoContract]
-        public class CommitContent
+        public class CommitContent : IContent
         {
             [ProtoMember(1)]
             public string Author { get; set; }
@@ -19,6 +19,18 @@ namespace Git4e
             public byte[] RootHash { get; set; }
             [ProtoMember(5)]
             public string[] ParentCommitHashes { get; set; }
+
+            public IHashableObject ToHashableObject(IContentSerializer contentSerializer, IObjectLoader objectLoader, IHashCalculator hashCalculator)
+            {
+                return new Commit(contentSerializer, hashCalculator)
+                {
+                    Author = this.Author,
+                    CommitDate = this.CommitDate,
+                    Message = this.Message,
+                    Root = objectLoader.GetObjectByHash(this.RootHash).Result,
+                    ParentCommitHashes = this.ParentCommitHashes
+                };
+            }
         }
 
         public string Author { get; set; }

@@ -19,22 +19,18 @@ namespace TestClient
             var serviceProvider = CreateServiceProvider();
             var contentSerializer = serviceProvider.GetService<IContentSerializer>();
             var objectStore = serviceProvider.GetService<IObjectStore>();
-            var hashToTextConverter = serviceProvider.GetService<IHashToTextConverter>();
             var contentTypeResolver = serviceProvider.GetService<IContentTypeResolver>();
             var objectLoader = serviceProvider.GetService<IObjectLoader>();
             var hashCalculator = serviceProvider.GetService<IHashCalculator>();
 
-            await LoadAndCommit(configuration, contentSerializer, objectStore, hashCalculator, cancellationToken);
+            var commitHash = await LoadDataAndCommit(configuration, contentSerializer, objectStore, hashCalculator, cancellationToken);
 
             //load a full-object from hash
-            var hashText = "9616A3655A008A4429E6135AC2C6932C071B97CB";
-            var hash = hashToTextConverter.ConvertTextToHash(hashText);
-            var contentTypeName = await objectStore.GetObjectTypeAsync(hash);
+            var contentTypeName = await objectStore.GetObjectTypeAsync(commitHash);
             var contentType = contentTypeResolver.ResolveContentType(contentTypeName);
-            var vp = await objectStore.GetObjectContentAsync(hash, contentType);
-            var content = vp as IContent;
-
-            var obj = content.ToHashableObject(contentSerializer, objectLoader, hashCalculator);
+            var objectContent = await objectStore.GetObjectContentAsync(commitHash, contentType);
+            var commitContent = objectContent as Commit.CommitContent;
+            var loadedCommit = commitContent.ToHashableObject(contentSerializer, objectLoader, hashCalculator) as Commit;
         }
 
         private static IConfiguration GetConfiguration()
@@ -45,7 +41,7 @@ namespace TestClient
                 .Build();
         }
 
-        private static async Task LoadAndCommit(IConfiguration configuration, IContentSerializer contentSerializer, IObjectStore objectStore, IHashCalculator hashCalculator, CancellationToken cancellationToken)
+        private static async Task<byte[]> LoadDataAndCommit(IConfiguration configuration, IContentSerializer contentSerializer, IObjectStore objectStore, IHashCalculator hashCalculator, CancellationToken cancellationToken)
         {
             var connectionString = configuration.GetConnectionString("CrewSchedule");
             var planVersionId = "1";
@@ -71,6 +67,8 @@ namespace TestClient
 
             //todo: use objectStore.AddCommit instead of SaveObjectsAsync
             await objectStore.SaveObjectsAsync(contents, cancellationToken);
+
+            return commit.Hash;
         }
 
         private static IServiceProvider CreateServiceProvider()
