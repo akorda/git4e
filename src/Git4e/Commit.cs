@@ -27,7 +27,7 @@ namespace Git4e
                 return new Commit(contentSerializer, hashCalculator)
                 {
                     Author = this.Author,
-                    CommitDate = this.CommitDate,
+                    When = this.CommitDate,
                     Message = this.Message,
                     Root = objectLoader.GetObjectByHash(this.RootHash).Result,
                     ParentCommitHashes = this.ParentCommitHashes
@@ -36,7 +36,7 @@ namespace Git4e
         }
 
         public string Author { get; set; }
-        public DateTime CommitDate { get; set; }
+        public DateTime When { get; set; }
         public string Message { get; set; }
         public IHashableObject Root { get; set; }
         public byte[][] ParentCommitHashes { get; set; }
@@ -52,7 +52,7 @@ namespace Git4e
             var content = new CommitContent
             {
                 Author = this.Author,
-                CommitDate = this.CommitDate,
+                CommitDate = this.When,
                 Message = this.Message,
                 RootHash = rootHash,
                 ParentCommitHashes = this.ParentCommitHashes
