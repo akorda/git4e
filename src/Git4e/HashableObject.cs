@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Git4e
 {
@@ -19,7 +21,7 @@ namespace Git4e
             this.HashCalculator = hashCalculator ?? throw new ArgumentNullException(nameof(hashCalculator));
         }
 
-        public abstract void SerializeContent(Stream stream);
+        public abstract Task SerializeContentAsync(Stream stream, CancellationToken cancellationToken = default);
 
         public virtual IEnumerable<IHashableObject> ChildObjects { get => new IHashableObject[0]; }
 
@@ -37,7 +39,7 @@ namespace Git4e
                 {
                     using (var stream = new MemoryStream())
                     {
-                        this.SerializeContent(stream);
+                        this.SerializeContentAsync(stream, CancellationToken.None).Wait();
                         stream.Position = 0;
                         _Hash = this.HashCalculator.ComputeHash(stream);
                     }

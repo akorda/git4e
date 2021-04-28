@@ -40,7 +40,7 @@ namespace Git4e
             var contentType = this.ContentTypeResolver.ResolveContentType(contentTypeName);
             var objectContent = await this.ObjectStore.GetObjectContentAsync(commitHash, contentType, cancellationToken);
             var commitContent = objectContent as Commit.CommitContent;
-            var commit = commitContent.ToHashableObject(this.ServiceProvider, this.ObjectLoader) as Commit;
+            var commit = (await commitContent.ToHashableObjectAsync(this.ServiceProvider, this.ObjectLoader, cancellationToken)) as Commit;
             if (commit != null)
             {
                 this.HeadCommitHash = commit.Hash;

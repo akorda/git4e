@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Git4e;
 using Microsoft.Extensions.DependencyInjection;
 using ProtoBuf;
@@ -19,13 +21,13 @@ namespace CrewSchedule
             public string FirstName { get; set; }
             //Compatibilities, etc
 
-            public IHashableObject ToHashableObject(IServiceProvider serviceProvider, IObjectLoader objectLoader)
+            public Task<IHashableObject> ToHashableObjectAsync(IServiceProvider serviceProvider, IObjectLoader objectLoader, CancellationToken cancellationToken = default)
             {
                 var seaman = ActivatorUtilities.CreateInstance<Seaman>(serviceProvider);
                 seaman.SeamanCode = this.SeamanCode;
                 seaman.LastName = this.LastName;
                 seaman.FirstName = this.FirstName;
-                return seaman;
+                return Task.FromResult(seaman as IHashableObject);
             }
         }
 
@@ -78,7 +80,7 @@ namespace CrewSchedule
         {
         }
 
-        public override void SerializeContent(Stream stream)
+        public override async Task SerializeContentAsync(Stream stream, CancellationToken cancellationToken = default)
         {
             var content = new SeamanContent
             {
@@ -86,7 +88,7 @@ namespace CrewSchedule
                 LastName = this.LastName,
                 FirstName = this.FirstName
             };
-            this.ContentSerializer.SerializeContent(stream, this.Type, content);
+            await this.ContentSerializer.SerializeContentAsync(stream, this.Type, content, cancellationToken);
         }
     }
 }

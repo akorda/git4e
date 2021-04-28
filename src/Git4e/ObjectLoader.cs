@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Git4e
@@ -28,7 +29,7 @@ namespace Git4e
             this.ContentToObjectConverter = contentToObjectConverter;
         }
 
-        public async Task<IHashableObject> GetObjectByHash(string hash)
+        public async Task<IHashableObject> GetObjectByHashAsync(string hash, CancellationToken cancellationToken = default)
         {
             if (hash == null)
                 return null;
@@ -38,15 +39,15 @@ namespace Git4e
                 return obj;
             }
 
-            var typeText = await this.ObjectStore.GetObjectTypeAsync(hash);
+            var typeText = await this.ObjectStore.GetObjectTypeAsync(hash, cancellationToken);
             var contentType = this.ContentTypeResolver.ResolveContentType(typeText);
-            var objectContent = (await this.ObjectStore.GetObjectContentAsync(hash, contentType));
+            var objectContent = (await this.ObjectStore.GetObjectContentAsync(hash, contentType, cancellationToken));
             if (objectContent == null)
                 return null;
 
             if (objectContent is IContent content)
             {
-                obj = content.ToHashableObject(this.ServiceProvider, this);
+                obj = await content.ToHashableObjectAsync(this.ServiceProvider, this, cancellationToken);
             }
             else
             {

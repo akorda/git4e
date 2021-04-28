@@ -24,7 +24,7 @@ namespace Git4e
             this.Options = options ?? new PhysicalFilesObjectStoreOptions();
         }
 
-        public Task SaveObjectAsync(IHashableObject content, CancellationToken cancellationToken = default)
+        public async Task SaveObjectAsync(IHashableObject content, CancellationToken cancellationToken = default)
         {
             var root = this.Options.RootDirectory;
             var hash = content.Hash;
@@ -36,7 +36,7 @@ namespace Git4e
             if (File.Exists(path))
             {
                 //fast exit. no need to write anything
-                return Task.CompletedTask;
+                return;
             }
 
             if (!Directory.Exists(root))
@@ -50,12 +50,10 @@ namespace Git4e
             }
 
             using (var stream = new FileStream(path, FileMode.CreateNew))
-                content.SerializeContent(stream);
-
-            return Task.CompletedTask;
+                await content.SerializeContentAsync(stream, cancellationToken);
         }
 
-        public Task SaveObjectsAsync(IEnumerable<IHashableObject> contents, CancellationToken cancellationToken = default)
+        public async Task SaveObjectsAsync(IEnumerable<IHashableObject> contents, CancellationToken cancellationToken = default)
         {
             var root = this.Options.RootDirectory;
             if (!Directory.Exists(root))
@@ -83,7 +81,7 @@ namespace Git4e
                 }
 
                 using (var stream = new FileStream(path, FileMode.CreateNew))
-                    content.SerializeContent(stream);
+                    await content.SerializeContentAsync(stream, cancellationToken);
 
                 //await File.WriteAllBytesAsync(path, content.SerializeContent(contentSerializer, hashCalculator, hashToTextConverter), cancellationToken);
 
@@ -91,11 +89,9 @@ namespace Git4e
                 //we wrote at least one content, we cannot cancel the request
                 cancellationToken = CancellationToken.None;
             }
-
-            return Task.CompletedTask;
         }
 
-        public Task<string> GetObjectTypeAsync(string hash, CancellationToken cancellationToken = default)
+        public async Task<string> GetObjectTypeAsync(string hash, CancellationToken cancellationToken = default)
         {
             var objectDirectoryName = hash.Substring(0, ObjectDirLength);
             var root = this.Options.RootDirectory;
@@ -107,15 +103,11 @@ namespace Git4e
 
             string type;
             using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read))
-            //using (var reader = new BinaryReader(stream))
-            //{
-            //    type = reader.ReadString();
-            //}
-                type = this.ContentSerializer.GetObjectTypeAsync(stream);
-            return Task.FromResult(type);
+                type = await this.ContentSerializer.GetObjectTypeAsync(stream, cancellationToken);
+            return type;
         }
 
-        public Task<object> GetObjectContentAsync(string hash, Type contentType, CancellationToken cancellationToken = default)
+        public async Task<object> GetObjectContentAsync(string hash, Type contentType, CancellationToken cancellationToken = default)
         {
             var objectDirectoryName = hash.Substring(0, ObjectDirLength);
             var root = this.Options.RootDirectory;
@@ -128,9 +120,9 @@ namespace Git4e
             object content;
             using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read))
             {
-                content = this.ContentSerializer.DeserializeContent(stream, contentType);
+                content = await this.ContentSerializer.DeserializeContentAsync(stream, contentType, cancellationToken);
             }
-            return Task.FromResult(content);
+            return content;
         }
     }
 }

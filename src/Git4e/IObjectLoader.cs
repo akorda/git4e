@@ -1,9 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace Git4e
 {
     public interface IObjectLoader
     {
-        Task<IHashableObject> GetObjectByHash(string hash);
+        Task<IHashableObject> GetObjectByHashAsync(string hash, CancellationToken cancellationToken = default);
     }
 }

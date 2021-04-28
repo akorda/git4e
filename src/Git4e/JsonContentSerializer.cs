@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Git4e
 {
@@ -11,45 +13,24 @@ namespace Git4e
             public string Type { get; set; }
         }
 
-        public object DeserializeContent(Stream stream, Type contentType)
+        public async Task<object> DeserializeContentAsync(Stream stream, Type contentType, CancellationToken cancellationToken = default)
         {
-            byte[] buffer;
-
-            using (var streamReader = new BinaryReader(stream))
-                buffer = streamReader.ReadBytes((int)stream.Length);
-
-            var jr = new Utf8JsonReader(buffer);
-            var header = JsonSerializer.Deserialize<Header>(ref jr);
-            //
-            var contentBuffer = new byte[buffer.Length - (int)jr.BytesConsumed];
-            Buffer.BlockCopy(buffer, (int)jr.BytesConsumed, contentBuffer, 0, buffer.Length - (int)jr.BytesConsumed);
-            jr = new Utf8JsonReader(contentBuffer);
-            var content = JsonSerializer.Deserialize(ref jr, contentType);
+            var header = await JsonSerializer.DeserializeAsync<Header>(stream, cancellationToken: cancellationToken);
+            var content = await JsonSerializer.DeserializeAsync(stream, contentType, cancellationToken: cancellationToken);
             return content;
         }
 
-        public void SerializeContent(Stream stream, string type, object content)
+        public async Task SerializeContentAsync(Stream stream, string type, object content, CancellationToken cancellationToken = default)
         {
             var header = new Header { Type = type };
 
-            var writer = new Utf8JsonWriter(stream);
-            JsonSerializer.Serialize(writer, header);
-            writer.Flush();
-
-            writer = new Utf8JsonWriter(stream);
-            JsonSerializer.Serialize(writer, content);
-            writer.Flush();
+            await JsonSerializer.SerializeAsync(stream, header, cancellationToken: cancellationToken);
+            await JsonSerializer.SerializeAsync(stream, content, cancellationToken: cancellationToken);
         }
 
-        public string GetObjectTypeAsync(Stream stream)
+        public async Task<string> GetObjectTypeAsync(Stream stream, CancellationToken cancellationToken = default)
         {
-            byte[] buffer;
-
-            using (var streamReader = new BinaryReader(stream))
-                buffer = streamReader.ReadBytes((int)stream.Length);
-
-            var jr = new Utf8JsonReader(buffer);
-            var header = JsonSerializer.Deserialize<Header>(ref jr);
+            var header = await JsonSerializer.DeserializeAsync<Header>(stream, cancellationToken: cancellationToken);
             return header.Type;
         }
     }

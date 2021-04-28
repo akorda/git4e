@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Git4e;
 using Microsoft.Extensions.DependencyInjection;
 using ProtoBuf;
@@ -18,12 +20,15 @@ namespace CrewSchedule
             [ProtoMember(2)]
             public string[] VesselHashes { get; set; }
 
-            public IHashableObject ToHashableObject(IServiceProvider serviceProvider, IObjectLoader objectLoader)
+            public async Task<IHashableObject> ToHashableObjectAsync(IServiceProvider serviceProvider, IObjectLoader objectLoader, CancellationToken cancellationToken = default)
             {
-                var vessels =
-                    this.VesselHashes
+                var loadVesselTasks = this.VesselHashes
                     .Where(hash => hash != null)
-                    .Select(hash => objectLoader.GetObjectByHash(hash).Result)
+                    .Select(hash => objectLoader.GetObjectByHashAsync(hash, cancellationToken));
+                await Task.WhenAll(loadVesselTasks);
+
+                var vessels = loadVesselTasks
+                    .Select(task => task.Result)
                     .Cast<Vessel>()
                     .ToArray();
                 var plan = ActivatorUtilities.CreateInstance<Plan>(serviceProvider);
@@ -66,7 +71,7 @@ namespace CrewSchedule
         {
         }
 
-        public override void SerializeContent(Stream stream)
+        public override async Task SerializeContentAsync(Stream stream, CancellationToken cancellationToken = default)
         {
             var vesselHashes = this.Vessels?
                 .OrderBy(vessel => vessel.VesselCode)
@@ -77,7 +82,7 @@ namespace CrewSchedule
                 PlanVersionId = this.PlanVersionId,
                 VesselHashes = vesselHashes
             };
-            this.ContentSerializer.SerializeContent(stream, this.Type, content);
+            await this.ContentSerializer.SerializeContentAsync(stream, this.Type, content, cancellationToken);
         }
 
         public override IEnumerable<IHashableObject> ChildObjects

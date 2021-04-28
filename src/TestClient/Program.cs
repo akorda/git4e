@@ -22,32 +22,32 @@ namespace TestClient
             var objectLoader = serviceProvider.GetService<IObjectLoader>();
             var repository = serviceProvider.GetService<IRepository>();
 
-            var hash = "8A9FB8AC7BE2BA2FA7BBC3013F8BCC71C55EB2A9";//protobuf
+            var hash = "4F283A101110E0F4DC8293C9CC187A63FCE4EA9F";//protobuf
             //var hash = "EB217FB7A50A32C986D24C5A4E8C6F592AE9AB43";//json
-            var commit = await repository.CheckoutAsync(hash);
+            var commit = await repository.CheckoutAsync(hash, cancellationToken);
             string parentCommitHash = commit.Hash;
-            //Hash parentCommitHash = null;
+            //string parentCommitHash = null;
 
             var commitHash = await LoadDataAndCommit(configuration, serviceProvider, repository, cancellationToken);
 
             //load a full-object from hash
-            var contentTypeName = await objectStore.GetObjectTypeAsync(commitHash);
+            var contentTypeName = await objectStore.GetObjectTypeAsync(commitHash, cancellationToken);
             var contentType = contentTypeResolver.ResolveContentType(contentTypeName);
-            var objectContent = await objectStore.GetObjectContentAsync(commitHash, contentType);
+            var objectContent = await objectStore.GetObjectContentAsync(commitHash, contentType, cancellationToken);
             var commitContent = objectContent as Commit.CommitContent;
-            var loadedCommit = commitContent.ToHashableObject(serviceProvider, objectLoader) as Commit;
+            var loadedCommit = (await commitContent.ToHashableObjectAsync(serviceProvider, objectLoader, cancellationToken)) as Commit;
             parentCommitHash = loadedCommit.ParentCommitHashes?.FirstOrDefault();
             if (parentCommitHash != null)
             {
-                objectContent = await objectStore.GetObjectContentAsync(parentCommitHash, contentType);
+                objectContent = await objectStore.GetObjectContentAsync(parentCommitHash, contentType, cancellationToken);
                 commitContent = objectContent as Commit.CommitContent;
-                var parentCommit = commitContent.ToHashableObject(serviceProvider, objectLoader) as Commit;
+                var parentCommit = (await commitContent.ToHashableObjectAsync(serviceProvider, objectLoader, cancellationToken)) as Commit;
                 parentCommitHash = parentCommit.ParentCommitHashes?.FirstOrDefault();
                 if (parentCommitHash != null)
                 {
-                    objectContent = await objectStore.GetObjectContentAsync(parentCommitHash, contentType);
+                    objectContent = await objectStore.GetObjectContentAsync(parentCommitHash, contentType, cancellationToken);
                     commitContent = objectContent as Commit.CommitContent;
-                    parentCommit = commitContent.ToHashableObject(serviceProvider, objectLoader) as Commit;
+                    parentCommit = (await commitContent.ToHashableObjectAsync(serviceProvider, objectLoader, cancellationToken)) as Commit;
                 }
             }
         }
@@ -60,7 +60,7 @@ namespace TestClient
                 .Build();
         }
 
-        private static async Task<string> LoadDataAndCommit(IConfiguration configuration, IServiceProvider serviceProvider, IRepository repository, CancellationToken cancellationToken)
+        private static async Task<string> LoadDataAndCommit(IConfiguration configuration, IServiceProvider serviceProvider, IRepository repository, CancellationToken cancellationToken = default)
         {
             var connectionString = configuration.GetConnectionString("CrewSchedule");
             var planVersionId = "1";

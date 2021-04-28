@@ -1,17 +1,36 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using ProtoBuf;
 
 namespace Git4e
 {
     public class ProtobufContentSerializer : IContentSerializer
     {
-        public void SerializeContent(Stream stream, string type, object content)
+        private static Task WriteHeaderAsync(Stream stream, string type, CancellationToken cancellationToken)
+        {
+            //todo: use ms.WriteAsync()
+            var writer = new BinaryWriter(stream);
+            writer.Write(type);
+            writer.Flush();
+            return Task.CompletedTask;
+        }
+
+        private static Task<string> ReadHeaderAsync(Stream stream, CancellationToken cancellationToken)
+        {
+            //todo: use ms.ReadAsync()
+            var reader = new BinaryReader(stream);
+            var type = reader.ReadString();
+            return Task.FromResult(type);
+        }
+
+        public async Task SerializeContentAsync(Stream stream, string type, object content, CancellationToken cancellationToken = default)
         {
             //byte[] bytes;
             //using (var ms = new MemoryStream())
             {
-                WriteHeader(stream, type);
+                await WriteHeaderAsync(stream, type, cancellationToken);
                 Serializer.Serialize(stream, content);
 
                 //bytes = ms.ToArray();
@@ -29,32 +48,16 @@ namespace Git4e
             //return bytes;
         }
 
-        public object DeserializeContent(Stream stream, Type contentType)
+        public async Task<object> DeserializeContentAsync(Stream stream, Type contentType, CancellationToken cancellationToken = default)
         {
-            var type = ReadHeader(stream);
+            var type = await ReadHeaderAsync(stream, cancellationToken);
             var content = Serializer.Deserialize(contentType, stream);
             return content;
         }
 
-        private static void WriteHeader(Stream stream, string type)
+        public async Task<string> GetObjectTypeAsync(Stream stream, CancellationToken cancellationToken = default)
         {
-            //todo: use ms.WriteAsync()
-            var writer = new BinaryWriter(stream);
-            writer.Write(type);
-            writer.Flush();
-        }
-
-        private static string ReadHeader(Stream stream)
-        {
-            //todo: use ms.ReadAsync()
-            var reader = new BinaryReader(stream);
-            var type = reader.ReadString();
-            return type;
-        }
-
-        public string GetObjectTypeAsync(Stream stream)
-        {
-            var type = ReadHeader(stream);
+            var type = await ReadHeaderAsync(stream, cancellationToken);
             return type;
         }
     }

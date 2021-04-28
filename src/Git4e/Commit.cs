@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using ProtoBuf;
 
@@ -24,13 +26,13 @@ namespace Git4e
             [ProtoMember(5)]
             public string[] ParentCommitHashes { get; set; }
 
-            public IHashableObject ToHashableObject(IServiceProvider serviceProvider, IObjectLoader objectLoader)
+            public async Task<IHashableObject> ToHashableObjectAsync(IServiceProvider serviceProvider, IObjectLoader objectLoader, CancellationToken cancellationToken = default)
             {
                 var commit = ActivatorUtilities.CreateInstance<Commit>(serviceProvider);
                 commit.Author = this.Author;
                 commit.When = this.When;
                 commit.Message = this.Message;
-                commit.Root = objectLoader.GetObjectByHash(this.RootHash).Result;
+                commit.Root = await objectLoader.GetObjectByHashAsync(this.RootHash, cancellationToken);
                 commit.ParentCommitHashes = this.ParentCommitHashes;
                 return commit;
             }
@@ -47,7 +49,7 @@ namespace Git4e
         {
         }
 
-        public override void SerializeContent(Stream stream)
+        public override async Task SerializeContentAsync(Stream stream, CancellationToken cancellationToken = default)
         {
             var rootHash = this.Root.Hash;
             var content = new CommitContent
@@ -58,7 +60,7 @@ namespace Git4e
                 RootHash = rootHash,
                 ParentCommitHashes = this.ParentCommitHashes
             };
-            this.ContentSerializer.SerializeContent(stream, this.Type, content);
+            await this.ContentSerializer.SerializeContentAsync(stream, this.Type, content, cancellationToken);
         }
 
         public override IEnumerable<IHashableObject> ChildObjects

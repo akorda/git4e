@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Git4e;
 using Microsoft.Extensions.DependencyInjection;
 using ProtoBuf;
@@ -28,12 +30,15 @@ namespace CrewSchedule
             [ProtoMember(5)]
             public string[] SeamanAssignmentHashes { get; set; }
 
-            public IHashableObject ToHashableObject(IServiceProvider serviceProvider, IObjectLoader objectLoader)
+            public async Task<IHashableObject> ToHashableObjectAsync(IServiceProvider serviceProvider, IObjectLoader objectLoader, CancellationToken cancellationToken = default)
             {
-                var seamanAssignments =
-                    this.SeamanAssignmentHashes
+                var loadAssignmentTasks = this.SeamanAssignmentHashes
                     .Where(hash => hash != null)
-                    .Select(hash => objectLoader.GetObjectByHash(hash).Result)
+                    .Select(hash => objectLoader.GetObjectByHashAsync(hash, cancellationToken));
+                await Task.WhenAll(loadAssignmentTasks);
+
+                var seamanAssignments = loadAssignmentTasks
+                    .Select(task => task.Result)
                     .Cast<SeamanAssignment>()
                     .ToList();
                 var position = ActivatorUtilities.CreateInstance<VesselPosition>(serviceProvider);
@@ -121,7 +126,7 @@ namespace CrewSchedule
         {
         }
 
-        public override void SerializeContent(Stream stream)
+        public override async Task SerializeContentAsync(Stream stream, CancellationToken cancellationToken = default)
         {
             var seamanAssignmentHashes = this.SeamanAssignments?
                 .OrderBy(asn => asn.StartOverlap)
@@ -135,7 +140,7 @@ namespace CrewSchedule
                 PositionNo = this.PositionNo,
                 SeamanAssignmentHashes = seamanAssignmentHashes
             };
-            this.ContentSerializer.SerializeContent(stream, this.Type, content);
+            await this.ContentSerializer.SerializeContentAsync(stream, this.Type, content, cancellationToken);
         }
 
         public override IEnumerable<IHashableObject> ChildObjects

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Git4e;
 using Microsoft.Extensions.DependencyInjection;
 using ProtoBuf;
@@ -25,9 +27,9 @@ namespace CrewSchedule
             [ProtoMember(6)]
             public string SeamanHash { get; set; }
 
-            public IHashableObject ToHashableObject(IServiceProvider serviceProvider, IObjectLoader objectLoader)
+            public async Task<IHashableObject> ToHashableObjectAsync(IServiceProvider serviceProvider, IObjectLoader objectLoader, CancellationToken cancellationToken = default)
             {
-                var seaman = objectLoader.GetObjectByHash(this.SeamanHash).Result as Seaman;
+                var seaman = (await objectLoader.GetObjectByHashAsync(this.SeamanHash, cancellationToken)) as Seaman;
                 var assignment = ActivatorUtilities.CreateInstance<SeamanAssignment>(serviceProvider);
                 assignment.SeamanAssignmentId = this.SeamanAssignmentId;
                 assignment.StartOverlap = this.StartOverlap;
@@ -123,7 +125,7 @@ namespace CrewSchedule
         {
         }
 
-        public override void SerializeContent(Stream stream)
+        public override async Task SerializeContentAsync(Stream stream, CancellationToken cancellationToken = default)
         {
             var content = new SeamanAssignmentContent
             {
@@ -134,7 +136,7 @@ namespace CrewSchedule
                 EndOverlap = this.EndOverlap,
                 SeamanHash = this.Seaman?.Hash
             };
-            this.ContentSerializer.SerializeContent(stream, this.Type, content);
+            await this.ContentSerializer.SerializeContentAsync(stream, this.Type, content, cancellationToken);
         }
 
         public override IEnumerable<IHashableObject> ChildObjects

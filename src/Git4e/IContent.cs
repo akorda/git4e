@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Git4e
 {
     public interface IContent
     {
-        IHashableObject ToHashableObject(IServiceProvider serviceProvider, IObjectLoader objectLoader);
+        Task<IHashableObject> ToHashableObjectAsync(IServiceProvider serviceProvider, IObjectLoader objectLoader, CancellationToken cancellationToken = default);
     }
 }
