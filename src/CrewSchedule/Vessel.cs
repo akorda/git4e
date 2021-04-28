@@ -88,7 +88,7 @@ namespace CrewSchedule
         {
         }
 
-        public override async Task SerializeContentAsync(Stream stream, CancellationToken cancellationToken = default)
+        protected override object GetContent()
         {
             var positionHashes = this.Positions?
                 .OrderBy(pos => pos.DutyRankCode)
@@ -101,7 +101,7 @@ namespace CrewSchedule
                 Name = this.Name,
                 PositionHashes = positionHashes
             };
-            await this.ContentSerializer.SerializeContentAsync(stream, this.Type, content, cancellationToken);
+            return content;
         }
 
         public override IEnumerable<IHashableObject> ChildObjects

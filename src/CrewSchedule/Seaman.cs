@@ -80,7 +80,7 @@ namespace CrewSchedule
         {
         }
 
-        public override async Task SerializeContentAsync(Stream stream, CancellationToken cancellationToken = default)
+        protected override object GetContent()
         {
             var content = new SeamanContent
             {
@@ -88,7 +88,7 @@ namespace CrewSchedule
                 LastName = this.LastName,
                 FirstName = this.FirstName
             };
-            await this.ContentSerializer.SerializeContentAsync(stream, this.Type, content, cancellationToken);
+            return content;
         }
     }
 }

@@ -126,7 +126,7 @@ namespace CrewSchedule
         {
         }
 
-        public override async Task SerializeContentAsync(Stream stream, CancellationToken cancellationToken = default)
+        protected override object GetContent()
         {
             var seamanAssignmentHashes = this.SeamanAssignments?
                 .OrderBy(asn => asn.StartOverlap)
@@ -140,7 +140,7 @@ namespace CrewSchedule
                 PositionNo = this.PositionNo,
                 SeamanAssignmentHashes = seamanAssignmentHashes
             };
-            await this.ContentSerializer.SerializeContentAsync(stream, this.Type, content, cancellationToken);
+            return content;
         }
 
         public override IEnumerable<IHashableObject> ChildObjects

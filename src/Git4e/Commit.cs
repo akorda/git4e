@@ -49,7 +49,7 @@ namespace Git4e
         {
         }
 
-        public override async Task SerializeContentAsync(Stream stream, CancellationToken cancellationToken = default)
+        protected override object GetContent()
         {
             var rootHash = this.Root.Hash;
             var content = new CommitContent
@@ -60,7 +60,7 @@ namespace Git4e
                 RootHash = rootHash,
                 ParentCommitHashes = this.ParentCommitHashes
             };
-            await this.ContentSerializer.SerializeContentAsync(stream, this.Type, content, cancellationToken);
+            return content;
         }
 
         public override IEnumerable<IHashableObject> ChildObjects

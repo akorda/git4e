@@ -22,7 +22,7 @@ namespace TestClient
             var objectLoader = serviceProvider.GetService<IObjectLoader>();
             var repository = serviceProvider.GetService<IRepository>();
 
-            var hash = "4F283A101110E0F4DC8293C9CC187A63FCE4EA9F";//protobuf
+            var hash = "E6DD03C0EF03A314A6B30B70FCEE62F47CF2AD5A";//protobuf
             //var hash = "EB217FB7A50A32C986D24C5A4E8C6F592AE9AB43";//json
             var commit = await repository.CheckoutAsync(hash, cancellationToken);
             string parentCommitHash = commit.Hash;

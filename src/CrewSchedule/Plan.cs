@@ -71,7 +71,7 @@ namespace CrewSchedule
         {
         }
 
-        public override async Task SerializeContentAsync(Stream stream, CancellationToken cancellationToken = default)
+        protected override object GetContent()
         {
             var vesselHashes = this.Vessels?
                 .OrderBy(vessel => vessel.VesselCode)
@@ -82,7 +82,7 @@ namespace CrewSchedule
                 PlanVersionId = this.PlanVersionId,
                 VesselHashes = vesselHashes
             };
-            await this.ContentSerializer.SerializeContentAsync(stream, this.Type, content, cancellationToken);
+            return content;
         }
 
         public override IEnumerable<IHashableObject> ChildObjects
