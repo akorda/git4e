@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Git4e;
-using Microsoft.Extensions.DependencyInjection;
 using ProtoBuf;
 
 namespace CrewSchedule
 {
     public class Plan : HashableObject
     {
+        public const string PlanContentType = "Plan";
+
         [ProtoContract]
         public class PlanContent : IContent
         {
@@ -20,21 +20,17 @@ namespace CrewSchedule
             [ProtoMember(2)]
             public string[] VesselHashes { get; set; }
 
-            public async Task<IHashableObject> ToHashableObjectAsync(IServiceProvider serviceProvider, IObjectLoader objectLoader, CancellationToken cancellationToken = default)
+            public Task<IHashableObject> ToHashableObjectAsync(string hash, IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
             {
-                var loadVesselTasks = this.VesselHashes
-                    .Where(hash => hash != null)
-                    .Select(hash => objectLoader.GetObjectByHashAsync(hash, cancellationToken));
-                await Task.WhenAll(loadVesselTasks);
-
-                var vessels = loadVesselTasks
-                    .Select(task => task.Result)
-                    .Cast<Vessel>()
+                var vessels = this.VesselHashes
+                    .Select(vesselHash => new LazyHashableObject<Vessel>(vesselHash, Vessel.VesselContentType))
                     .ToArray();
-                var plan = ActivatorUtilities.CreateInstance<Plan>(serviceProvider);
-                plan.PlanVersionId = this.PlanVersionId;
-                plan.Vessels = vessels;
-                return plan;
+                var plan = new Plan(hash)
+                {
+                    PlanVersionId = this.PlanVersionId,
+                    Vessels = vessels
+                };
+                return Task.FromResult(plan as IHashableObject);
             }
         }
 
@@ -52,8 +48,8 @@ namespace CrewSchedule
             }
         }
 
-        IEnumerable<Vessel> _Vessels;
-        public IEnumerable<Vessel> Vessels
+        IEnumerable<LazyHashableObject<Vessel>> _Vessels;
+        public IEnumerable<LazyHashableObject<Vessel>> Vessels
         {
             get => _Vessels;
             set
@@ -66,15 +62,16 @@ namespace CrewSchedule
             }
         }
 
-        public Plan(IContentSerializer contentSerializer, IHashCalculator hashCalculator)
-            : base("Plan", contentSerializer, hashCalculator)
+        public Plan(string hash = null)
+            : base(PlanContentType, hash)
         {
         }
 
         protected override object GetContent()
         {
             var vesselHashes = this.Vessels?
-                .OrderBy(vessel => vessel.VesselCode)
+                //.OrderBy(vessel => vessel.VesselCode)
+                .OrderBy(vessel => vessel.Hash)
                 .Select(vessel => vessel.Hash)
                 .ToArray();
             var content = new PlanContent
@@ -85,12 +82,12 @@ namespace CrewSchedule
             return content;
         }
 
-        public override IEnumerable<IHashableObject> ChildObjects
+        public override async IAsyncEnumerable<IHashableObject> GetChildObjects()
         {
-            get
+            var vessels = this.Vessels ?? new LazyHashableObject<Vessel>[0];
+            foreach (var vessel in vessels)
             {
-                if (this.Vessels != null) return this.Vessels;
-                return new IHashableObject[0];
+                yield return await Task.FromResult(vessel);
             }
         }
     }

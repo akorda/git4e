@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Dapper;
+using Git4e;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CrewSchedule
@@ -132,7 +133,7 @@ namespace CrewSchedule
                         seamanAssignments.Add(asn);
 
                     if (seamenMap.TryGetValue(asn.SeamanCode, out var seaman))
-                        asn.Seaman = seaman;
+                        asn.Seaman = new LazyHashableObject<Seaman>(seaman);
                 }
 
                 foreach (var pos in Positions)
@@ -146,14 +147,15 @@ namespace CrewSchedule
                     }
                 }
 
-                foreach (var vessel in Vessels)
-                    vessel.Positions = vesselsMap[vessel.VesselCode].AsEnumerable();
                 foreach (var position in Positions)
-                    position.SeamanAssignments = positionMap[$"{position.VesselCode}#{position.DutyRankCode}#{position.PositionNo}"].AsEnumerable();
+                    position.SeamanAssignments = positionMap[$"{position.VesselCode}#{position.DutyRankCode}#{position.PositionNo}"].Select(asn => new LazyHashableObject<SeamanAssignment>(asn)).ToArray();
+
+                foreach (var vessel in Vessels)
+                    vessel.Positions = vesselsMap[vessel.VesselCode].Select(vp => new LazyHashableObject<VesselPosition>(vp)).ToArray();
 
                 this.Plan = ActivatorUtilities.CreateInstance<Plan>(serviceProvider);
                 this.Plan.PlanVersionId = planVersionId;
-                this.Plan.Vessels = Vessels.ToArray();
+                this.Plan.Vessels = Vessels.Select(vessel => new LazyHashableObject<Vessel>(vessel)).ToArray();
             }
         }
     }

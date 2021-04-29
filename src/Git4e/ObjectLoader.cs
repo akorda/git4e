@@ -47,7 +47,7 @@ namespace Git4e
 
             if (objectContent is IContent content)
             {
-                obj = await content.ToHashableObjectAsync(this.ServiceProvider, this, cancellationToken);
+                obj = await content.ToHashableObjectAsync(hash, this.ServiceProvider, cancellationToken);
             }
             else
             {
