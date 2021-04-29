@@ -82,6 +82,7 @@ namespace TestClient
                 .AddSingleton<IContentTypeResolver>(CreateContentTypeResolver())
                 .AddSingleton<PhysicalFilesObjectStoreOptions>()
                 .AddSingleton<IObjectStore, PhysicalFilesObjectStore>()
+                //.AddSingleton<IObjectStore, InMemoryObjectStore>()
                 .AddSingleton<IObjectLoader, ObjectLoader>()
                 .AddSingleton<IRepository, Repository>()
                 .BuildServiceProvider();
