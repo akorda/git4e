@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Git4e
@@ -12,19 +10,16 @@ namespace Git4e
         public IServiceProvider ServiceProvider { get; }
         public IObjectStore ObjectStore { get; }
         public IContentTypeResolver ContentTypeResolver { get; }
-        public IObjectLoader ObjectLoader { get; }
 
         public Repository(
             IServiceProvider serviceProvider,
             IObjectStore objectStore,
-            IContentTypeResolver contentTypeResolver,
-            IObjectLoader objectLoader = null
+            IContentTypeResolver contentTypeResolver
             )
         {
             this.ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.ObjectStore = objectStore ?? throw new ArgumentNullException(nameof(objectStore));
             this.ContentTypeResolver = contentTypeResolver ?? throw new ArgumentNullException(nameof(contentTypeResolver));
-            this.ObjectLoader = objectLoader;
         }
 
         public string HeadCommitHash { get; private set; }
@@ -40,29 +35,31 @@ namespace Git4e
             var contentType = this.ContentTypeResolver.ResolveContentType(contentTypeName);
             var objectContent = await this.ObjectStore.GetObjectContentAsync(commitHash, contentType, cancellationToken);
             var commitContent = objectContent as Commit.CommitContent;
-            var commit = (await commitContent.ToHashableObjectAsync(this.ServiceProvider, this.ObjectLoader, cancellationToken)) as Commit;
+            var commit = (await commitContent.ToHashableObjectAsync(commitHash, this.ServiceProvider, cancellationToken)) as Commit;
             if (commit != null)
             {
-                this.HeadCommitHash = commit.Hash;
+                this.HeadCommitHash = commitHash;
             }
             return commit;
         }
 
         public async Task<string> CommitAsync(string author, DateTime when, string message, IHashableObject root, CancellationToken cancellationToken = default)
         {
-            var commit = ActivatorUtilities.CreateInstance<Commit>(this.ServiceProvider);
-            commit.Author = author;
-            commit.When = when;
-            commit.Message = message;
-            commit.Root = root;
+            var commit = new Commit
+            {
+                Author = author,
+                When = when,
+                Message = message,
+                Root = new LazyHashableObject(root)
+            };
 
             if (this.HeadCommitHash != null)
             {
                 commit.ParentCommitHashes = new[] { this.HeadCommitHash };
             }
 
-            var contents = root.GetAllChildObjects().Union(new[] { commit, root });
-            await this.ObjectStore.SaveObjectsAsync(contents, cancellationToken);
+            await this.ObjectStore.SaveTreeAsync(commit, cancellationToken);
+
             this.HeadCommitHash = commit.Hash;
             return commit.Hash;
         }

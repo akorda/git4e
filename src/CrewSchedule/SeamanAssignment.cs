@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Git4e;
-using Microsoft.Extensions.DependencyInjection;
 using ProtoBuf;
 
 namespace CrewSchedule
 {
     public class SeamanAssignment : HashableObject
     {
+        public const string SeamanAssignmentContentType = "SeamanAssignment";
+
         [ProtoContract]
         public class SeamanAssignmentContent : IContent
         {
@@ -27,17 +27,18 @@ namespace CrewSchedule
             [ProtoMember(6)]
             public string SeamanHash { get; set; }
 
-            public async Task<IHashableObject> ToHashableObjectAsync(IServiceProvider serviceProvider, IObjectLoader objectLoader, CancellationToken cancellationToken = default)
+            public Task<IHashableObject> ToHashableObjectAsync(string hash, IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
             {
-                var seaman = (await objectLoader.GetObjectByHashAsync(this.SeamanHash, cancellationToken)) as Seaman;
-                var assignment = ActivatorUtilities.CreateInstance<SeamanAssignment>(serviceProvider);
-                assignment.SeamanAssignmentId = this.SeamanAssignmentId;
-                assignment.StartOverlap = this.StartOverlap;
-                assignment.StartDuties = this.StartDuties;
-                assignment.EndDuties = this.EndDuties;
-                assignment.EndOverlap = this.EndOverlap;
-                assignment.Seaman = seaman;
-                return assignment;
+                var assignment = new SeamanAssignment(hash)
+                {
+                    SeamanAssignmentId = this.SeamanAssignmentId,
+                    StartOverlap = this.StartOverlap,
+                    StartDuties = this.StartDuties,
+                    EndDuties = this.EndDuties,
+                    EndOverlap = this.EndOverlap,
+                    Seaman = new LazyHashableObject<Seaman>(this.SeamanHash, CrewSchedule.Seaman.SeamanContentType)
+                };
+                return Task.FromResult(assignment as IHashableObject);
             }
         }
 
@@ -113,15 +114,16 @@ namespace CrewSchedule
 
         //do not serialize
         public string SeamanCode { get; set; }
-        public Seaman Seaman { get; set; }
+
+        public LazyHashableObject<Seaman> Seaman { get; set; }
 
         //do not serialize
         public string VesselCode { get; set; }
         public string DutyRankCode { get; set; }
         public int PositionNo { get; set; }
 
-        public SeamanAssignment(IContentSerializer contentSerializer, IHashCalculator hashCalculator)
-            : base("SeamanAssignment", contentSerializer, hashCalculator)
+        public SeamanAssignment(string hash = null)
+            : base(SeamanAssignmentContentType, hash)
         {
         }
 
@@ -139,12 +141,11 @@ namespace CrewSchedule
             return content;
         }
 
-        public override IEnumerable<IHashableObject> ChildObjects
+        public override async IAsyncEnumerable<IHashableObject> GetChildObjects()
         {
-            get
+            if (this.Seaman != null)
             {
-                if (this.Seaman != null)
-                    yield return this.Seaman;
+                yield return await Task.FromResult(this.Seaman);
             }
         }
     }

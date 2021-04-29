@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Git4e;
-using Microsoft.Extensions.DependencyInjection;
 using ProtoBuf;
 
 namespace CrewSchedule
 {
     public class VesselPosition : HashableObject
     {
+        public const string VesselPositionContentType = "VesselPosition";
+
         [ProtoContract]
         public class VesselPositionContent : IContent
         {
@@ -30,24 +30,20 @@ namespace CrewSchedule
             [ProtoMember(5)]
             public string[] SeamanAssignmentHashes { get; set; }
 
-            public async Task<IHashableObject> ToHashableObjectAsync(IServiceProvider serviceProvider, IObjectLoader objectLoader, CancellationToken cancellationToken = default)
+            public Task<IHashableObject> ToHashableObjectAsync(string hash, IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
             {
-                var loadAssignmentTasks = this.SeamanAssignmentHashes
-                    .Where(hash => hash != null)
-                    .Select(hash => objectLoader.GetObjectByHashAsync(hash, cancellationToken));
-                await Task.WhenAll(loadAssignmentTasks);
-
-                var seamanAssignments = loadAssignmentTasks
-                    .Select(task => task.Result)
-                    .Cast<SeamanAssignment>()
-                    .ToList();
-                var position = ActivatorUtilities.CreateInstance<VesselPosition>(serviceProvider);
-                position.VesselPositionId = this.VesselPositionId;
-                position.VesselCode = this.VesselCode;
-                position.DutyRankCode = this.DutyRankCode;
-                position.PositionNo = this.PositionNo;
-                position.SeamanAssignments = seamanAssignments;
-                return position;
+                var seamanAssignments = this.SeamanAssignmentHashes
+                    .Select(asnHash => new LazyHashableObject<SeamanAssignment>(asnHash, SeamanAssignment.SeamanAssignmentContentType))
+                    .ToArray();
+                var position = new VesselPosition(hash)
+                {
+                    VesselPositionId = this.VesselPositionId,
+                    VesselCode = this.VesselCode,
+                    DutyRankCode = this.DutyRankCode,
+                    PositionNo = this.PositionNo,
+                    SeamanAssignments = seamanAssignments
+                };
+                return Task.FromResult(position as IHashableObject);
             }
         }
 
@@ -107,8 +103,8 @@ namespace CrewSchedule
             }
         }
 
-        IEnumerable<SeamanAssignment> _SeamanAssignments;
-        public IEnumerable<SeamanAssignment> SeamanAssignments
+        IEnumerable<LazyHashableObject<SeamanAssignment>> _SeamanAssignments;
+        public IEnumerable<LazyHashableObject<SeamanAssignment>> SeamanAssignments
         {
             get => _SeamanAssignments;
             set
@@ -121,15 +117,16 @@ namespace CrewSchedule
             }
         }
 
-        public VesselPosition(IContentSerializer contentSerializer, IHashCalculator hashCalculator)
-            : base("VesselPosition", contentSerializer, hashCalculator)
+        public VesselPosition(string hash = null)
+            : base(VesselPositionContentType, hash)
         {
         }
 
         protected override object GetContent()
         {
             var seamanAssignmentHashes = this.SeamanAssignments?
-                .OrderBy(asn => asn.StartOverlap)
+                //.OrderBy(asn => asn.StartOverlap)
+                .OrderBy(asn => asn.Hash)
                 .Select(asn => asn.Hash)
                 .ToArray();
             var content = new VesselPositionContent
@@ -143,13 +140,12 @@ namespace CrewSchedule
             return content;
         }
 
-        public override IEnumerable<IHashableObject> ChildObjects
+        public override async IAsyncEnumerable<IHashableObject> GetChildObjects()
         {
-            get
+            var assignments = this.SeamanAssignments ?? new LazyHashableObject<SeamanAssignment>[0];
+            foreach (var assignment in assignments)
             {
-                if (this.SeamanAssignments != null)
-                    return this.SeamanAssignments;
-                return new IHashableObject[0];
+                yield return await Task.FromResult(assignment);
             }
         }
     }

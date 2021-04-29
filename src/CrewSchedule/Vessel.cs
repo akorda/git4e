@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Git4e;
-using Microsoft.Extensions.DependencyInjection;
 using ProtoBuf;
 
 namespace CrewSchedule
 {
     public class Vessel : HashableObject
     {
+        public const string VesselContentType = "Vessel";
+
         [ProtoContract]
         public class VesselContent : IContent
         {
@@ -22,22 +22,18 @@ namespace CrewSchedule
             [ProtoMember(3)]
             public string[] PositionHashes { get; set; }
 
-            public async Task<IHashableObject> ToHashableObjectAsync(IServiceProvider serviceProvider, IObjectLoader objectLoader, CancellationToken cancellationToken = default)
+            public Task<IHashableObject> ToHashableObjectAsync(string hash, IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
             {
-                var loadPositionTasks = this.PositionHashes
-                    .Where(hash => hash != null)
-                    .Select(hash => objectLoader.GetObjectByHashAsync(hash, cancellationToken));
-                await Task.WhenAll(loadPositionTasks);
-
-                var positions = loadPositionTasks
-                    .Select(task => task.Result)
-                    .Cast<VesselPosition>()
-                    .ToList();
-                var vessel = ActivatorUtilities.CreateInstance<Vessel>(serviceProvider);
-                vessel.VesselCode = this.VesselCode;
-                vessel.Name = this.Name;
-                vessel.Positions = positions;
-                return vessel;
+                var positions = this.PositionHashes
+                    .Select(posHash => new LazyHashableObject<VesselPosition>(posHash, VesselPosition.VesselPositionContentType))
+                    .ToArray();
+                var vessel = new Vessel(hash)
+                {
+                    VesselCode = this.VesselCode,
+                    Name = this.Name,
+                    Positions = positions
+                };
+                return Task.FromResult(vessel as IHashableObject);
             }
         }
 
@@ -69,8 +65,8 @@ namespace CrewSchedule
             }
         }
 
-        IEnumerable<VesselPosition> _Positions;
-        public IEnumerable<VesselPosition> Positions
+        IEnumerable<LazyHashableObject<VesselPosition>> _Positions;
+        public IEnumerable<LazyHashableObject<VesselPosition>> Positions
         {
             get => _Positions;
             set
@@ -83,16 +79,17 @@ namespace CrewSchedule
             }
         }
 
-        public Vessel(IContentSerializer contentSerializer, IHashCalculator hashCalculator)
-            : base("Vessel", contentSerializer, hashCalculator)
+        public Vessel(string hash = null)
+            : base(VesselContentType, hash)
         {
         }
 
         protected override object GetContent()
         {
             var positionHashes = this.Positions?
-                .OrderBy(pos => pos.DutyRankCode)
-                .ThenBy(pos => pos.PositionNo)
+                //.OrderBy(pos => pos.DutyRankCode)
+                //.ThenBy(pos => pos.PositionNo)
+                .OrderBy(pos => pos.Hash)
                 .Select(pos => pos.Hash)
                 .ToArray();
             var content = new VesselContent
@@ -104,13 +101,12 @@ namespace CrewSchedule
             return content;
         }
 
-        public override IEnumerable<IHashableObject> ChildObjects
+        public override async IAsyncEnumerable<IHashableObject> GetChildObjects()
         {
-            get
+            var positions = this.Positions ?? new LazyHashableObject<VesselPosition>[0];
+            foreach (var position in positions)
             {
-                if (this.Positions != null)
-                    return this.Positions;
-                return new IHashableObject[0];
+                yield return await Task.FromResult(position);
             }
         }
     }

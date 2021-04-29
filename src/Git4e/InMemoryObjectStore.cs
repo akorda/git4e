@@ -27,6 +27,11 @@ namespace Git4e
             this.HashCalculator = hashCalculator ?? throw new ArgumentNullException(nameof(hashCalculator));
         }
 
+        public Task SaveTreeAsync(IHashableObject content, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task SaveObjectAsync(IHashableObject content, CancellationToken cancellationToken = default)
         {
             var hash = content.Hash;

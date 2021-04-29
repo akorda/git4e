@@ -21,11 +21,26 @@ namespace TestClient
             var contentTypeResolver = serviceProvider.GetService<IContentTypeResolver>();
             var objectLoader = serviceProvider.GetService<IObjectLoader>();
             var repository = serviceProvider.GetService<IRepository>();
+            var hashCalculator = serviceProvider.GetService<IHashCalculator>();
+            var contentSerializer = serviceProvider.GetService<IContentSerializer>();
 
-            var hash = "E6DD03C0EF03A314A6B30B70FCEE62F47CF2AD5A";//protobuf
+            Globals.ServiceProvider = serviceProvider;
+            Globals.HashCalculator = hashCalculator;
+            Globals.ContentSerializer = contentSerializer;
+            Globals.ObjectStore = objectStore;
+            Globals.ObjectLoader = objectLoader;
+            Globals.ContentTypeResolver = contentTypeResolver;
+
+            var hash = "EDB0761DAEAFBBD53A42849AAE25BA34AF15E041";//protobuf
             //var hash = "EB217FB7A50A32C986D24C5A4E8C6F592AE9AB43";//json
             var commit = await repository.CheckoutAsync(hash, cancellationToken);
             string parentCommitHash = commit.Hash;
+            //Console.WriteLine($"Author: {commit.Author}");
+            //var rootHash = commit.Root.Hash;
+            //var plan = (await commit.Root) as Plan;
+            //var vessel = plan.Vessels.FirstOrDefault();
+            ////var v = await vessel.Value;
+
             //string parentCommitHash = null;
 
             var commitHash = await LoadDataAndCommit(configuration, serviceProvider, repository, cancellationToken);
@@ -35,19 +50,19 @@ namespace TestClient
             var contentType = contentTypeResolver.ResolveContentType(contentTypeName);
             var objectContent = await objectStore.GetObjectContentAsync(commitHash, contentType, cancellationToken);
             var commitContent = objectContent as Commit.CommitContent;
-            var loadedCommit = (await commitContent.ToHashableObjectAsync(serviceProvider, objectLoader, cancellationToken)) as Commit;
+            var loadedCommit = (await commitContent.ToHashableObjectAsync(commitHash, serviceProvider, cancellationToken)) as Commit;
             parentCommitHash = loadedCommit.ParentCommitHashes?.FirstOrDefault();
             if (parentCommitHash != null)
             {
                 objectContent = await objectStore.GetObjectContentAsync(parentCommitHash, contentType, cancellationToken);
                 commitContent = objectContent as Commit.CommitContent;
-                var parentCommit = (await commitContent.ToHashableObjectAsync(serviceProvider, objectLoader, cancellationToken)) as Commit;
+                var parentCommit = (await commitContent.ToHashableObjectAsync(commitHash, serviceProvider, cancellationToken)) as Commit;
                 parentCommitHash = parentCommit.ParentCommitHashes?.FirstOrDefault();
                 if (parentCommitHash != null)
                 {
                     objectContent = await objectStore.GetObjectContentAsync(parentCommitHash, contentType, cancellationToken);
                     commitContent = objectContent as Commit.CommitContent;
-                    parentCommit = (await commitContent.ToHashableObjectAsync(serviceProvider, objectLoader, cancellationToken)) as Commit;
+                    parentCommit = (await commitContent.ToHashableObjectAsync(commitHash, serviceProvider, cancellationToken)) as Commit;
                 }
             }
         }
@@ -91,12 +106,12 @@ namespace TestClient
         private static IContentTypeResolver CreateContentTypeResolver()
         {
             var resolver = new ContentTypeResolver();
-            resolver.RegisterContentType("Commit", typeof(Commit.CommitContent));
-            resolver.RegisterContentType("Plan", typeof(CrewSchedule.Plan.PlanContent));
-            resolver.RegisterContentType("Seaman", typeof(CrewSchedule.Seaman.SeamanContent));
-            resolver.RegisterContentType("SeamanAssignment", typeof(CrewSchedule.SeamanAssignment.SeamanAssignmentContent));
-            resolver.RegisterContentType("Vessel", typeof(CrewSchedule.Vessel.VesselContent));
-            resolver.RegisterContentType("VesselPosition", typeof(CrewSchedule.VesselPosition.VesselPositionContent));
+            resolver.RegisterContentType(Commit.ContentTypeName, typeof(Commit.CommitContent));
+            resolver.RegisterContentType(Plan.PlanContentType, typeof(Plan.PlanContent));
+            resolver.RegisterContentType(Seaman.SeamanContentType, typeof(Seaman.SeamanContent));
+            resolver.RegisterContentType(SeamanAssignment.SeamanAssignmentContentType, typeof(SeamanAssignment.SeamanAssignmentContent));
+            resolver.RegisterContentType(Vessel.VesselContentType, typeof(Vessel.VesselContent));
+            resolver.RegisterContentType(VesselPosition.VesselPositionContentType, typeof(VesselPosition.VesselPositionContent));
             return resolver;
         }
     }

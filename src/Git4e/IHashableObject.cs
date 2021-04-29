@@ -10,6 +10,6 @@ namespace Git4e
         string Type { get; }
         string Hash { get; }
         Task SerializeContentAsync(Stream stream, CancellationToken cancellationToken = default);
-        IEnumerable<IHashableObject> ChildObjects { get; }
+        IAsyncEnumerable<IHashableObject> GetChildObjects();
     }
 }

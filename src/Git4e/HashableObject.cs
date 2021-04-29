@@ -11,17 +11,20 @@ namespace Git4e
     public abstract class HashableObject : IHashableObject
     {
         public string Type { get; private set; }
-        public IContentSerializer ContentSerializer { get; }
-        public IHashCalculator HashCalculator { get; }
+        public IContentSerializer ContentSerializer { get; } = Globals.ContentSerializer;
+        public IHashCalculator HashCalculator { get; } = Globals.HashCalculator;
+        public IObjectStore ObjectStore { get; set; } = Globals.ObjectStore;
+        public IServiceProvider ServiceProvider { get; } = Globals.ServiceProvider;
+        public IObjectLoader ObjectLoader { get; set; } = Globals.ObjectLoader;
+        public IContentTypeResolver ContentTypeResolver { get; set; } = Globals.ContentTypeResolver;
 
         private string _Hash;
         private byte[] _Content;
 
-        public HashableObject(string type, IContentSerializer contentSerializer, IHashCalculator hashCalculator)
+        public HashableObject(string type, string hash = null)
         {
             this.Type = type ?? throw new ArgumentNullException(nameof(type));
-            this.ContentSerializer = contentSerializer ?? throw new ArgumentNullException(nameof(contentSerializer));
-            this.HashCalculator = hashCalculator ?? throw new ArgumentNullException(nameof(hashCalculator));
+            _Hash = hash;
         }
 
         public virtual async Task SerializeContentAsync(Stream stream, CancellationToken cancellationToken = default)
@@ -42,7 +45,14 @@ namespace Git4e
 
         protected abstract object GetContent();
 
-        public virtual IEnumerable<IHashableObject> ChildObjects { get => new IHashableObject[0]; }
+        public async virtual IAsyncEnumerable<IHashableObject> GetChildObjects()
+        {
+            foreach (var child in new IHashableObject[0])
+            {
+                var ch = await Task.FromResult(child);
+                yield return ch;
+            }
+        }
 
         protected void MarkContentAsDirty()
         {

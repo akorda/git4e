@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using ProtoBuf;
 
 namespace Git4e
@@ -25,50 +23,54 @@ namespace Git4e
             public string RootHash { get; set; }
             [ProtoMember(5)]
             public string[] ParentCommitHashes { get; set; }
+            [ProtoMember(6)]
+            public string RootContentType { get; set; }
 
-            public async Task<IHashableObject> ToHashableObjectAsync(IServiceProvider serviceProvider, IObjectLoader objectLoader, CancellationToken cancellationToken = default)
+            public Task<IHashableObject> ToHashableObjectAsync(string hash, IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
             {
-                var commit = ActivatorUtilities.CreateInstance<Commit>(serviceProvider);
-                commit.Author = this.Author;
-                commit.When = this.When;
-                commit.Message = this.Message;
-                commit.Root = await objectLoader.GetObjectByHashAsync(this.RootHash, cancellationToken);
-                commit.ParentCommitHashes = this.ParentCommitHashes;
-                return commit;
+                var commit = new Commit(hash)
+                {
+                    Author = this.Author,
+                    When = this.When,
+                    Message = this.Message,
+                    Root = new LazyHashableObject(this.RootHash, this.RootContentType),
+                    ParentCommitHashes = this.ParentCommitHashes
+                };
+                return Task.FromResult(commit as IHashableObject);
             }
         }
 
         public string Author { get; set; }
         public DateTime When { get; set; }
         public string Message { get; set; }
-        public IHashableObject Root { get; set; }
+        public LazyHashableObject Root { get; set; }
         public string[] ParentCommitHashes { get; set; }
 
-        public Commit(IContentSerializer contentSerializer, IHashCalculator hashCalculator)
-            : base(ContentTypeName, contentSerializer, hashCalculator)
+        public Commit(string hash = null)
+            : base(ContentTypeName, hash)
         {
         }
 
         protected override object GetContent()
         {
-            var rootHash = this.Root.Hash;
             var content = new CommitContent
             {
                 Author = this.Author,
                 When = this.When,
                 Message = this.Message,
-                RootHash = rootHash,
+                RootHash = this.Root.Hash,
+                RootContentType = this.Root.Type,
                 ParentCommitHashes = this.ParentCommitHashes
             };
             return content;
         }
 
-        public override IEnumerable<IHashableObject> ChildObjects
+        public override async IAsyncEnumerable<IHashableObject> GetChildObjects()
         {
-            get
+            if (this.Root != null)
             {
-                if (this.Root != null)
-                    yield return this.Root;
+                var root = await this.Root;
+                yield return root;
             }
         }
     }

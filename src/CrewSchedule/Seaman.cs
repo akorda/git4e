@@ -1,15 +1,15 @@
 ﻿using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Git4e;
-using Microsoft.Extensions.DependencyInjection;
 using ProtoBuf;
 
 namespace CrewSchedule
 {
     public class Seaman : HashableObject
     {
+        public const string SeamanContentType = "Seaman";
+
         [ProtoContract]
         public class SeamanContent : IContent
         {
@@ -21,12 +21,14 @@ namespace CrewSchedule
             public string FirstName { get; set; }
             //Compatibilities, etc
 
-            public Task<IHashableObject> ToHashableObjectAsync(IServiceProvider serviceProvider, IObjectLoader objectLoader, CancellationToken cancellationToken = default)
+            public Task<IHashableObject> ToHashableObjectAsync(string hash, IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
             {
-                var seaman = ActivatorUtilities.CreateInstance<Seaman>(serviceProvider);
-                seaman.SeamanCode = this.SeamanCode;
-                seaman.LastName = this.LastName;
-                seaman.FirstName = this.FirstName;
+                var seaman = new Seaman(hash)
+                {
+                    SeamanCode = this.SeamanCode,
+                    LastName = this.LastName,
+                    FirstName = this.FirstName
+                };
                 return Task.FromResult(seaman as IHashableObject);
             }
         }
@@ -75,8 +77,8 @@ namespace CrewSchedule
 
         //Compatibilities, etc
 
-        public Seaman(IContentSerializer contentSerializer, IHashCalculator hashCalculator)
-            : base("Seaman", contentSerializer, hashCalculator)
+        public Seaman(string hash = null)
+            : base(SeamanContentType, hash)
         {
         }
 

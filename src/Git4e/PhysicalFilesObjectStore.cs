@@ -24,6 +24,35 @@ namespace Git4e
             this.Options = options ?? new PhysicalFilesObjectStoreOptions();
         }
 
+        public async Task SaveTreeAsync(IHashableObject content, CancellationToken cancellationToken = default)
+        {
+            var root = this.Options.RootDirectory;
+            var hash = content.Hash;
+            var objectDirectoryName = hash.Substring(0, ObjectDirLength);
+            var objectDirectory = Path.Combine(root, objectDirectoryName);
+            var filename = hash.Substring(ObjectDirLength);
+            var path = Path.Combine(objectDirectory, filename);
+
+            if (File.Exists(path))
+            {
+                //fast exit. no need to write anything else
+                return;
+            }
+
+            //todo: use logger
+            Console.WriteLine($"Saving modified content: Type {content.Type}, Hash: {content.Hash}");
+
+            await this.SaveObjectAsync(content, cancellationToken);
+
+            //In order to preserve the "transactional" semantics of the saving contents, since
+            //we wrote at least one content, we cannot cancel the request
+            cancellationToken = CancellationToken.None;
+
+            var children = content.GetChildObjects();
+            await foreach (var child in children)
+                await this.SaveTreeAsync(child, cancellationToken);
+        }
+
         public async Task SaveObjectAsync(IHashableObject content, CancellationToken cancellationToken = default)
         {
             var root = this.Options.RootDirectory;
@@ -35,7 +64,7 @@ namespace Git4e
 
             if (File.Exists(path))
             {
-                //fast exit. no need to write anything
+                //fast exit. no need to write anything else
                 return;
             }
 
@@ -71,7 +100,7 @@ namespace Git4e
 
                 if (File.Exists(path))
                 {
-                    //fast exit. no need to write anything
+                    //fast exit. no need to write anything else
                     continue;
                 }
 
@@ -82,8 +111,6 @@ namespace Git4e
 
                 using (var stream = new FileStream(path, FileMode.CreateNew))
                     await content.SerializeContentAsync(stream, cancellationToken);
-
-                //await File.WriteAllBytesAsync(path, content.SerializeContent(contentSerializer, hashCalculator, hashToTextConverter), cancellationToken);
 
                 //In order to preserve the "transactional" semantics of the saving contents, since
                 //we wrote at least one content, we cannot cancel the request
