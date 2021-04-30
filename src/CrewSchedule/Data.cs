@@ -26,7 +26,8 @@ namespace CrewSchedule
         {
             using (var connection = new SqlConnection(connectionString))
             {
-                var planVersionParameter = new { PlanVersionId = planVersionId };
+                var parameters = new { PlanVersionId = planVersionId };
+
                 var sql = $@"
                     WITH SA AS
                     (
@@ -39,7 +40,7 @@ namespace CrewSchedule
                     WHERE V.VesselCode IN (SELECT VesselCode FROM SA)
                     ";
 
-                var command = new CommandDefinition(sql, parameters: planVersionParameter, cancellationToken: cancellationToken);
+                var command = new CommandDefinition(sql, parameters: parameters, cancellationToken: cancellationToken);
 
                 this.Vessels = (await connection.QueryAsync(command))
                     .Select(row =>
@@ -68,7 +69,7 @@ namespace CrewSchedule
                     RIGHT JOIN SA ON SA.VesselCode = VP.VesselCode AND SA.DutyRankCode = VP.DutyRankCode AND SA.PositionNo = VP.PositionNo
                     ";
 
-                command = new CommandDefinition(sql, parameters: planVersionParameter, cancellationToken: cancellationToken);
+                command = new CommandDefinition(sql, parameters: parameters, cancellationToken: cancellationToken);
                 this.Positions = (await connection.QueryAsync(command))
                     .Select(row =>
                     {
@@ -89,7 +90,7 @@ namespace CrewSchedule
                     SELECT SeamanAssignmentId, VesselCode, DutyRankCode, PositionNo, StartOverlappingSlot, StartSlot, EndSlot, EndOverlappingSlot, SeamanCode, VesselCode, DutyRankCode, PositionNo
                     FROM cs.SeamanAssignments
                     WHERE PlanVersionId = @PlanVersionId";
-                command = new CommandDefinition(sql, parameters: planVersionParameter, cancellationToken: cancellationToken);
+                command = new CommandDefinition(sql, parameters: parameters, cancellationToken: cancellationToken);
                 this.Assignments = (await connection.QueryAsync(command))
                     .Select(row =>
                     {
@@ -113,7 +114,7 @@ namespace CrewSchedule
                     SELECT PersonCode, LastName, FirstName
                     FROM cs.Persons WHERE PersonCode IN
                     (SELECT DISTINCT(SeamanCode) FROM cs.SeamanAssignments WHERE PlanVersionId = @PlanVersionId)";
-                command = new CommandDefinition(sql, parameters: planVersionParameter, cancellationToken: cancellationToken);
+                command = new CommandDefinition(sql, parameters: parameters, cancellationToken: cancellationToken);
                 this.Seamen = (await connection.QueryAsync(command))
                     .Select(row =>
                     {
