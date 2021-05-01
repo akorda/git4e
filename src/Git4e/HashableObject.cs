@@ -54,7 +54,7 @@ namespace Git4e
             }
         }
 
-        protected void MarkContentAsDirty()
+        public void MarkAsDirty()
         {
             _Content = null;
             _Hash = null;

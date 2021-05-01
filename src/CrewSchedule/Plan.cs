@@ -22,9 +22,10 @@ namespace CrewSchedule
 
             public Task<IHashableObject> ToHashableObjectAsync(string hash, IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
             {
-                var vessels = this.VesselHashes
+                var vessels =
+                    this.VesselHashes
                     .Select(vesselHash => new LazyHashableObject<Vessel>(vesselHash, Vessel.VesselContentType))
-                    .ToArray();
+                    .ToLazyHashableObjectList();
                 var plan = new Plan(hash)
                 {
                     PlanVersionId = this.PlanVersionId,
@@ -43,13 +44,13 @@ namespace CrewSchedule
                 if (_PlanVersionId != value)
                 {
                     _PlanVersionId = value;
-                    this.MarkContentAsDirty();
+                    this.MarkAsDirty();
                 }
             }
         }
 
-        IEnumerable<LazyHashableObject<Vessel>> _Vessels;
-        public IEnumerable<LazyHashableObject<Vessel>> Vessels
+        LazyHashableObjectList<Vessel> _Vessels;
+        public LazyHashableObjectList<Vessel> Vessels
         {
             get => _Vessels;
             set
@@ -57,7 +58,9 @@ namespace CrewSchedule
                 if (_Vessels != value)
                 {
                     _Vessels = value;
-                    this.MarkContentAsDirty();
+                    if (value != null)
+                        value.Parent = this;
+                    this.MarkAsDirty();
                 }
             }
         }
@@ -70,7 +73,6 @@ namespace CrewSchedule
         protected override object GetContent()
         {
             var vesselHashes = this.Vessels?
-                //.OrderBy(vessel => vessel.VesselCode)
                 .OrderBy(vessel => vessel.Hash)
                 .Select(vessel => vessel.Hash)
                 .ToArray();
@@ -84,7 +86,7 @@ namespace CrewSchedule
 
         public override async IAsyncEnumerable<IHashableObject> GetChildObjects()
         {
-            var vessels = this.Vessels ?? new LazyHashableObject<Vessel>[0];
+            var vessels = this.Vessels.AsEnumerable() ?? new LazyHashableObject<Vessel>[0];
             foreach (var vessel in vessels)
             {
                 yield return await Task.FromResult(vessel);

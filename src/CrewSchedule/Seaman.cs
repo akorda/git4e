@@ -42,7 +42,7 @@ namespace CrewSchedule
                 if (_SeamanCode != value)
                 {
                     _SeamanCode = value;
-                    this.MarkContentAsDirty();
+                    this.MarkAsDirty();
                 }
             }
         }
@@ -56,7 +56,7 @@ namespace CrewSchedule
                 if (_FirstName != value)
                 {
                     _FirstName = value;
-                    this.MarkContentAsDirty();
+                    this.MarkAsDirty();
                 }
             }
         }
@@ -70,7 +70,7 @@ namespace CrewSchedule
                 if (_LastName != value)
                 {
                     _LastName = value;
-                    this.MarkContentAsDirty();
+                    this.MarkAsDirty();
                 }
             }
         }

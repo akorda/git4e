@@ -22,9 +22,9 @@ namespace Git4e
             [ProtoMember(4)]
             public string RootHash { get; set; }
             [ProtoMember(5)]
-            public string[] ParentCommitHashes { get; set; }
-            [ProtoMember(6)]
             public string RootContentType { get; set; }
+            [ProtoMember(6)]
+            public string[] ParentCommitHashes { get; set; }
 
             public Task<IHashableObject> ToHashableObjectAsync(string hash, IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
             {

@@ -9,6 +9,7 @@ namespace Git4e
     public class PhysicalFilesObjectStore : IObjectStore
     {
         private const int ObjectDirLength = 2;
+        private const string HeadFilename = "HEAD";
 
         public IContentSerializer ContentSerializer { get; }
         public IHashCalculator HashCalculator { get; }
@@ -150,6 +151,35 @@ namespace Git4e
                 content = await this.ContentSerializer.DeserializeContentAsync(stream, contentType, cancellationToken);
             }
             return content;
+        }
+
+        public async Task SaveHeadAsync(string commitHash, CancellationToken cancellationToken = default)
+        {
+            var root = this.Options.RootDirectory;
+            if (!Directory.Exists(root))
+                Directory.CreateDirectory(root);
+
+            var headPath = Path.Combine(root, HeadFilename);
+            //todo: currently we have only one branch. In the HEAD file we save
+            //the commit hash
+            var contents = commitHash;
+            await File.WriteAllTextAsync(headPath, contents, cancellationToken);
+        }
+
+        public async Task<string> ReadHeadAsync(CancellationToken cancellationToken = default)
+        {
+            var root = this.Options.RootDirectory;
+
+            if (!Directory.Exists(root))
+                return null;
+
+            var headPath = Path.Combine(root, HeadFilename);
+            //todo: currently we have only one branch. In the HEAD file we save
+            //the commit hash
+            if (!File.Exists(headPath))
+                return null;
+            var commitHash = await File.ReadAllTextAsync(headPath, cancellationToken);
+            return commitHash;
         }
     }
 }

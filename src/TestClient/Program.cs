@@ -31,10 +31,14 @@ namespace TestClient
             Globals.ObjectLoader = objectLoader;
             Globals.ContentTypeResolver = contentTypeResolver;
 
-            var hash = "EDB0761DAEAFBBD53A42849AAE25BA34AF15E041";//protobuf
-            //var hash = "EB217FB7A50A32C986D24C5A4E8C6F592AE9AB43";//json
-            var commit = await repository.CheckoutAsync(hash, cancellationToken);
-            string parentCommitHash = commit.Hash;
+            var hash = await objectStore.ReadHeadAsync(cancellationToken);
+            string parentCommitHash;
+            if (hash != null)
+            {
+                var commit = await repository.CheckoutAsync(hash, cancellationToken);
+                parentCommitHash = commit.Hash;
+            }
+
             //Console.WriteLine($"Author: {commit.Author}");
             //var rootHash = commit.Root.Hash;
             //var plan = (await commit.Root) as Plan;
@@ -43,7 +47,8 @@ namespace TestClient
 
             //string parentCommitHash = null;
 
-            var commitHash = await LoadDataAndCommit(configuration, serviceProvider, repository, cancellationToken);
+            //var commitHash = await UseCase1(configuration, serviceProvider, repository, cancellationToken);
+            var commitHash = await UseCase2(configuration, serviceProvider, objectStore, repository, cancellationToken);
 
             //load a full-object from hash
             var contentTypeName = await objectStore.GetObjectTypeAsync(commitHash, cancellationToken);
@@ -75,15 +80,61 @@ namespace TestClient
                 .Build();
         }
 
-        private static async Task<string> LoadDataAndCommit(IConfiguration configuration, IServiceProvider serviceProvider, IRepository repository, CancellationToken cancellationToken = default)
+        /// <summary>
+        /// Use Case 1:
+        /// 1. Checkout latest repo version
+        /// 2. Load all plan data
+        /// 3. Commit to verify that the commit includes just the updated plan data
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <param name="serviceProvider"></param>
+        /// <param name="repository"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        private static async Task<string> UseCase1(IConfiguration configuration, IServiceProvider serviceProvider, IRepository repository, CancellationToken cancellationToken = default)
         {
             var connectionString = configuration.GetConnectionString("CrewSchedule");
             var planVersionId = "1";
 
-            var data = new Data();
-            await data.LoadAsync(connectionString, planVersionId, serviceProvider, cancellationToken);
+            var data = new DataLoader();
+            await data.LoadDataAsync(connectionString, planVersionId, serviceProvider, cancellationToken);
 
             var commitHash = await repository.CommitAsync("akorda", DateTime.Now, "Fix CAPs on Athina", data.Plan, cancellationToken);
+            return commitHash;
+        }
+
+        private static async Task<string> UseCase2(IConfiguration configuration, IServiceProvider serviceProvider, IObjectStore objectStore, IRepository repository, CancellationToken cancellationToken = default)
+        {
+            var hash = await objectStore.ReadHeadAsync(cancellationToken);
+            if (hash == null) return null;
+
+            //load ZV and change a vessel property
+            var commit = await repository.CheckoutAsync(hash, cancellationToken);
+            var plan = (await commit.Root) as Plan;
+            //await Task.WhenAll(plan.Vessels.Select(v => v.Value));
+
+            var lazyVessel = plan.Vessels.FirstOrDefault(v => v.FinalValue.VesselCode == "ZV");
+            lazyVessel.FinalValue.Name += "I";
+            await plan.Vessels.RefreshItem(lazyVessel);
+
+            var planHash = plan.Hash;
+
+            //load UU and change several positions
+            lazyVessel = plan.Vessels.FirstOrDefault(v => v.FinalValue.VesselCode == "UU");
+            //await Task.WhenAll(lazyVessel.FinalValue.Positions.Select(p => p.Value));
+
+            var lazyPositions = lazyVessel.FinalValue.Positions.Where(p => p.FinalValue.DutyRankCode == "OS");
+
+            foreach (var lazyPosition in lazyPositions.ToArray())
+            {
+                lazyPosition.FinalValue.PositionNo++;
+                await lazyVessel.FinalValue.Positions.RefreshItem(lazyPosition);
+            }
+            await plan.Vessels.RefreshItem(lazyVessel);
+
+            planHash = plan.Hash;
+
+            var commitHash = await repository.CommitAsync("akorda", DateTime.Now, "Change Vessel Name", plan, cancellationToken);
             return commitHash;
         }
 
