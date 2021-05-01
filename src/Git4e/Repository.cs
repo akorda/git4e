@@ -59,6 +59,7 @@ namespace Git4e
             }
 
             await this.ObjectStore.SaveTreeAsync(commit, cancellationToken);
+            await this.ObjectStore.SaveHeadAsync(commit.Hash, CancellationToken.None);
 
             this.HeadCommitHash = commit.Hash;
             return commit.Hash;

@@ -95,5 +95,8 @@ namespace Git4e
             }
             return content;
         }
+
+        public Task SaveHeadAsync(string commitHash, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task<string> ReadHeadAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException();
     }
 }

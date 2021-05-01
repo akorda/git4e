@@ -44,6 +44,11 @@ namespace Git4e
             await foreach (var child in value.GetChildObjects())
                 yield return child;
         }
+
+        public void MarkAsDirty()
+        {
+            this.Hash = null;
+        }
     }
 
     public class LazyHashableObject<T> : AsyncLazy<T>, IHashableObject
@@ -85,6 +90,11 @@ namespace Git4e
             var value = await this.Value;
             await foreach (var child in value.GetChildObjects())
                 yield return child;
+        }
+
+        public void MarkAsDirty()
+        {
+            this.Hash = null;
         }
     }
 }

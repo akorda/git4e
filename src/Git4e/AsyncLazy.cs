@@ -17,5 +17,7 @@ namespace Git4e
         }
 
         public TaskAwaiter<T> GetAwaiter() => Value.GetAwaiter();
+
+        public T FinalValue { get => this.Value.Result; }
     }
 }

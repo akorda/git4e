@@ -51,7 +51,7 @@ namespace CrewSchedule
                 if (_SeamanAssignmentId != value)
                 {
                     _SeamanAssignmentId = value;
-                    this.MarkContentAsDirty();
+                    this.MarkAsDirty();
                 }
             }
         }
@@ -65,7 +65,7 @@ namespace CrewSchedule
                 if (_StartOverlap != value)
                 {
                     _StartOverlap = value;
-                    this.MarkContentAsDirty();
+                    this.MarkAsDirty();
                 }
             }
         }
@@ -79,7 +79,7 @@ namespace CrewSchedule
                 if (_StartDuties != value)
                 {
                     _StartDuties = value;
-                    this.MarkContentAsDirty();
+                    this.MarkAsDirty();
                 }
             }
         }
@@ -93,7 +93,7 @@ namespace CrewSchedule
                 if (_EndDuties != value)
                 {
                     _EndDuties = value;
-                    this.MarkContentAsDirty();
+                    this.MarkAsDirty();
                 }
             }
         }
@@ -107,7 +107,7 @@ namespace CrewSchedule
                 if (_EndOverlap != value)
                 {
                     _EndOverlap = value;
-                    this.MarkContentAsDirty();
+                    this.MarkAsDirty();
                 }
             }
         }

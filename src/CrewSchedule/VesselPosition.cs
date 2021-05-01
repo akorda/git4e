@@ -34,7 +34,7 @@ namespace CrewSchedule
             {
                 var seamanAssignments = this.SeamanAssignmentHashes
                     .Select(asnHash => new LazyHashableObject<SeamanAssignment>(asnHash, SeamanAssignment.SeamanAssignmentContentType))
-                    .ToArray();
+                    .ToLazyHashableObjectList();
                 var position = new VesselPosition(hash)
                 {
                     VesselPositionId = this.VesselPositionId,
@@ -56,7 +56,7 @@ namespace CrewSchedule
                 if (_VesselPositionId != value)
                 {
                     _VesselPositionId = value;
-                    this.MarkContentAsDirty();
+                    this.MarkAsDirty();
                 }
             }
         }
@@ -70,7 +70,7 @@ namespace CrewSchedule
                 if (_VesselCode != value)
                 {
                     _VesselCode = value;
-                    this.MarkContentAsDirty();
+                    this.MarkAsDirty();
                 }
             }
         }
@@ -84,7 +84,7 @@ namespace CrewSchedule
                 if (_DutyRankCode != value)
                 {
                     _DutyRankCode = value;
-                    this.MarkContentAsDirty();
+                    this.MarkAsDirty();
                 }
             }
         }
@@ -98,13 +98,13 @@ namespace CrewSchedule
                 if (_PositionNo != value)
                 {
                     _PositionNo = value;
-                    this.MarkContentAsDirty();
+                    this.MarkAsDirty();
                 }
             }
         }
 
-        IEnumerable<LazyHashableObject<SeamanAssignment>> _SeamanAssignments;
-        public IEnumerable<LazyHashableObject<SeamanAssignment>> SeamanAssignments
+        LazyHashableObjectList<SeamanAssignment> _SeamanAssignments;
+        public LazyHashableObjectList<SeamanAssignment> SeamanAssignments
         {
             get => _SeamanAssignments;
             set
@@ -112,7 +112,9 @@ namespace CrewSchedule
                 if (_SeamanAssignments != value)
                 {
                     _SeamanAssignments = value;
-                    this.MarkContentAsDirty();
+                    if (value != null)
+                        value.Parent = this;
+                    this.MarkAsDirty();
                 }
             }
         }
@@ -142,7 +144,7 @@ namespace CrewSchedule
 
         public override async IAsyncEnumerable<IHashableObject> GetChildObjects()
         {
-            var assignments = this.SeamanAssignments ?? new LazyHashableObject<SeamanAssignment>[0];
+            var assignments = this.SeamanAssignments ?? new LazyHashableObjectList<SeamanAssignment>();
             foreach (var assignment in assignments)
             {
                 yield return await Task.FromResult(assignment);

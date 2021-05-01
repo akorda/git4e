@@ -26,7 +26,7 @@ namespace CrewSchedule
             {
                 var positions = this.PositionHashes
                     .Select(posHash => new LazyHashableObject<VesselPosition>(posHash, VesselPosition.VesselPositionContentType))
-                    .ToArray();
+                    .ToLazyHashableObjectList();
                 var vessel = new Vessel(hash)
                 {
                     VesselCode = this.VesselCode,
@@ -46,7 +46,7 @@ namespace CrewSchedule
                 if (_VesselCode != value)
                 {
                     _VesselCode = value;
-                    this.MarkContentAsDirty();
+                    this.MarkAsDirty();
                 }
             }
         }
@@ -60,13 +60,13 @@ namespace CrewSchedule
                 if (_Name != value)
                 {
                     _Name = value;
-                    this.MarkContentAsDirty();
+                    this.MarkAsDirty();
                 }
             }
         }
 
-        IEnumerable<LazyHashableObject<VesselPosition>> _Positions;
-        public IEnumerable<LazyHashableObject<VesselPosition>> Positions
+        LazyHashableObjectList<VesselPosition> _Positions;
+        public LazyHashableObjectList<VesselPosition> Positions
         {
             get => _Positions;
             set
@@ -74,7 +74,9 @@ namespace CrewSchedule
                 if (_Positions != value)
                 {
                     _Positions = value;
-                    this.MarkContentAsDirty();
+                    if (value != null)
+                        value.Parent = this;
+                    this.MarkAsDirty();
                 }
             }
         }
@@ -103,7 +105,7 @@ namespace CrewSchedule
 
         public override async IAsyncEnumerable<IHashableObject> GetChildObjects()
         {
-            var positions = this.Positions ?? new LazyHashableObject<VesselPosition>[0];
+            var positions = this.Positions ?? new LazyHashableObjectList<VesselPosition>();
             foreach (var position in positions)
             {
                 yield return await Task.FromResult(position);

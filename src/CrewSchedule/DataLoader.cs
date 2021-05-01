@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CrewSchedule
 {
-    public class Data
+    public class DataLoader
     {
         public IEnumerable<Seaman> Seamen { get; private set; }
         public IEnumerable<SeamanAssignment> Assignments { get; private set; }
@@ -18,7 +18,7 @@ namespace CrewSchedule
         public IEnumerable<Vessel> Vessels { get; private set; }
         public Plan Plan { get; private set; }
 
-        public async Task LoadAsync(
+        public async Task LoadDataAsync(
             string connectionString,
             string planVersionId,
             IServiceProvider serviceProvider,
@@ -149,14 +149,14 @@ namespace CrewSchedule
                 }
 
                 foreach (var position in Positions)
-                    position.SeamanAssignments = positionMap[$"{position.VesselCode}#{position.DutyRankCode}#{position.PositionNo}"].Select(asn => new LazyHashableObject<SeamanAssignment>(asn)).ToArray();
+                    position.SeamanAssignments = positionMap[$"{position.VesselCode}#{position.DutyRankCode}#{position.PositionNo}"].Select(asn => new LazyHashableObject<SeamanAssignment>(asn)).ToLazyHashableObjectList();
 
                 foreach (var vessel in Vessels)
-                    vessel.Positions = vesselsMap[vessel.VesselCode].Select(vp => new LazyHashableObject<VesselPosition>(vp)).ToArray();
+                    vessel.Positions = vesselsMap[vessel.VesselCode].Select(vp => new LazyHashableObject<VesselPosition>(vp)).ToLazyHashableObjectList();
 
                 this.Plan = ActivatorUtilities.CreateInstance<Plan>(serviceProvider);
                 this.Plan.PlanVersionId = planVersionId;
-                this.Plan.Vessels = Vessels.Select(vessel => new LazyHashableObject<Vessel>(vessel)).ToArray();
+                this.Plan.Vessels = Vessels.Select(vessel => new LazyHashableObject<Vessel>(vessel)).ToLazyHashableObjectList();
             }
         }
     }

@@ -11,5 +11,6 @@ namespace Git4e
         string Hash { get; }
         Task SerializeContentAsync(Stream stream, CancellationToken cancellationToken = default);
         IAsyncEnumerable<IHashableObject> GetChildObjects();
+        void MarkAsDirty();
     }
 }
