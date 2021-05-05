@@ -18,12 +18,12 @@ namespace CrewSchedule
             [ProtoMember(1)]
             public string PlanVersionId { get; set; }
             [ProtoMember(2)]
-            public string[] VesselHashes { get; set; }
+            public string[] VesselFullHashes { get; set; }
 
             public Task<IHashableObject> ToHashableObjectAsync(string hash, IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
             {
                 var vessels =
-                    this.VesselHashes
+                    this.VesselFullHashes
                     .Select(vesselHash => new LazyVessel(vesselHash))
                     .ToList();
                 var plan = new Plan(hash)
@@ -70,14 +70,14 @@ namespace CrewSchedule
 
         protected override object GetContent()
         {
-            var vesselHashes = this.Vessels?
-                .OrderBy(vessel => vessel.Hash)
+            var vesselFullHashes = this.Vessels?
+                .OrderBy(vessel => vessel.FullHash)
                 .Select(vessel => vessel.FullHash)
                 .ToArray();
             var content = new PlanContent
             {
                 PlanVersionId = this.PlanVersionId,
-                VesselHashes = vesselHashes
+                VesselFullHashes = vesselFullHashes
             };
             return content;
         }

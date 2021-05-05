@@ -42,7 +42,7 @@ namespace Git4e
             }
 
             //todo: use logger
-            Console.WriteLine($"Saving modified content: Type {content.Type}, Hash: {content.Hash}");
+            //Console.WriteLine($"Saving modified content: Type {content.Type}, Hash: {content.Hash}");
 
             await this.SaveObjectAsync(content, cancellationToken);
 

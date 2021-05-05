@@ -29,6 +29,8 @@ namespace Git4e
 
         public string Type { get; private set; }
 
+        public virtual string FullHash { get => this.Hash; }
+
         public LazyHashableObject(string hash, string type)
             : base(async () =>
             {
@@ -100,7 +102,7 @@ namespace Git4e
             this.HashIncludeProperty1 = hashIncludePropertyProvider(hashableObject);
         }
 
-        public string FullHash
+        public override string FullHash
         {
             get
             {
@@ -133,7 +135,10 @@ namespace Git4e
             this.HashIncludeProperty2 = hashIncludeProperty2Provider(hashableObject);
         }
 
-        public string FullHash
+        /// <summary>
+        /// <inheritDoc />
+        /// </summary>
+        public override string FullHash
         {
             get
             {

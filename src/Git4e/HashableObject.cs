@@ -76,5 +76,7 @@ namespace Git4e
                 return _Hash;
             }
         }
+
+        public virtual string FullHash { get => this.Hash; }
     }
 }

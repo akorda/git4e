@@ -25,7 +25,7 @@ namespace CrewSchedule
             [ProtoMember(5)]
             public int EndOverlap { get; set; }
             [ProtoMember(6)]
-            public string SeamanHash { get; set; }
+            public string SeamanFullHash { get; set; }
 
             public Task<IHashableObject> ToHashableObjectAsync(string hash, IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
             {
@@ -36,7 +36,7 @@ namespace CrewSchedule
                     StartDuties = this.StartDuties,
                     EndDuties = this.EndDuties,
                     EndOverlap = this.EndOverlap,
-                    Seaman = new LazyHashableObject<Seaman>(this.SeamanHash, CrewSchedule.Seaman.SeamanContentType)
+                    Seaman = new LazyHashableObject<Seaman>(this.SeamanFullHash, CrewSchedule.Seaman.SeamanContentType)
                 };
                 return Task.FromResult(assignment as IHashableObject);
             }
@@ -136,7 +136,7 @@ namespace CrewSchedule
                 StartDuties = this.StartDuties,
                 EndDuties = this.EndDuties,
                 EndOverlap = this.EndOverlap,
-                SeamanHash = this.Seaman?.Hash
+                SeamanFullHash = this.Seaman?.FullHash
             };
             return content;
         }
@@ -150,7 +150,12 @@ namespace CrewSchedule
         }
     }
 
-    public class LazySeamanAssignment : LazyHashableObject<SeamanAssignment, string>
+    /// <summary>
+    /// VesselPosition Hash with the following included properties:
+    /// 1. SeamanAssignmentId
+    /// 2. Seaman->SeamanCode
+    /// </summary>
+    public class LazySeamanAssignment : LazyHashableObject<SeamanAssignment, string, string>
     {
         public LazySeamanAssignment(string fullHash)
             : base(fullHash, SeamanAssignment.SeamanAssignmentContentType)
@@ -158,7 +163,7 @@ namespace CrewSchedule
         }
 
         public LazySeamanAssignment(SeamanAssignment asn)
-            : base(asn, a => a.Seaman?.FinalValue.SeamanCode)
+            : base(asn, a => a.SeamanAssignmentId, a => a.Seaman?.FinalValue.SeamanCode)
         {
         }
     }

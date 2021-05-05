@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Git4e;
@@ -29,11 +28,11 @@ namespace CrewSchedule
             public int PositionNo { get; set; }
 
             [ProtoMember(5)]
-            public string[] SeamanAssignmentHashes { get; set; }
+            public string[] SeamanAssignmentFullHashes { get; set; }
 
             public Task<IHashableObject> ToHashableObjectAsync(string hash, IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
             {
-                var seamanAssignments = this.SeamanAssignmentHashes
+                var seamanAssignments = this.SeamanAssignmentFullHashes
                     .Select(asnHash => new LazySeamanAssignment(asnHash))
                     .ToList();
                 var position = new VesselPosition(hash)
@@ -125,9 +124,9 @@ namespace CrewSchedule
 
         protected override object GetContent()
         {
-            var seamanAssignmentHashes = this.SeamanAssignments?
+            var asnFullHashes = this.SeamanAssignments?
                 //.OrderBy(asn => asn.StartOverlap)
-                .OrderBy(asn => asn.Hash)
+                .OrderBy(asn => asn.FullHash)
                 .Select(asn => asn.FullHash)
                 .ToArray();
             var content = new VesselPositionContent
@@ -136,7 +135,7 @@ namespace CrewSchedule
                 VesselCode = this.VesselCode,
                 DutyRankCode = this.DutyRankCode,
                 PositionNo = this.PositionNo,
-                SeamanAssignmentHashes = seamanAssignmentHashes
+                SeamanAssignmentFullHashes = asnFullHashes
             };
             return content;
         }
@@ -151,6 +150,11 @@ namespace CrewSchedule
         }
     }
 
+    /// <summary>
+    /// VesselPosition Hash with the following included properties:
+    /// 1. DutyRankCode
+    /// 2. PositionNo
+    /// </summary>
     public class LazyVesselPosition : LazyHashableObject<VesselPosition, string, int>
     {
         public LazyVesselPosition(string fullHash)

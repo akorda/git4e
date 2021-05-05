@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Git4e;
@@ -21,12 +20,12 @@ namespace CrewSchedule
             [ProtoMember(2)]
             public string Name { get; set; }
             [ProtoMember(3)]
-            public string[] PositionHashes { get; set; }
+            public string[] PositionFullHashes { get; set; }
 
             public Task<IHashableObject> ToHashableObjectAsync(string hash, IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
             {
                 var positions =
-                    this.PositionHashes
+                    this.PositionFullHashes
                     .Select(posHash => new LazyVesselPosition(posHash))
                     .ToList();
                 var vessel = new Vessel(hash)
@@ -88,7 +87,7 @@ namespace CrewSchedule
 
         protected override object GetContent()
         {
-            var positionHashes = this.Positions?
+            var positionFullHashes = this.Positions?
                 .OrderBy(pos => pos.HashIncludeProperty1)
                 .ThenBy(pos => pos.HashIncludeProperty2)
                 .Select(pos => pos.FullHash)
@@ -97,7 +96,7 @@ namespace CrewSchedule
             {
                 VesselCode = this.VesselCode,
                 Name = this.Name,
-                PositionHashes = positionHashes
+                PositionFullHashes = positionFullHashes
             };
             return content;
         }
@@ -112,6 +111,11 @@ namespace CrewSchedule
         }
     }
 
+    /// <summary>
+    /// Vessel Hash with the following included properties:
+    /// 1. VesselCode
+    /// 2. Vessel Name
+    /// </summary>
     public class LazyVessel : LazyHashableObject<Vessel, string, string>
     {
         public LazyVessel(string fullHash)
