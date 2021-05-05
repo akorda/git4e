@@ -24,8 +24,8 @@ namespace CrewSchedule
             {
                 var vessels =
                     this.VesselHashes
-                    .Select(vesselHash => new LazyHashableObject<Vessel>(vesselHash, Vessel.VesselContentType))
-                    .ToLazyHashableObjectList();
+                    .Select(vesselHash => new LazyVessel(vesselHash))
+                    .ToList();
                 var plan = new Plan(hash)
                 {
                     PlanVersionId = this.PlanVersionId,
@@ -49,8 +49,8 @@ namespace CrewSchedule
             }
         }
 
-        LazyHashableObjectList<Vessel> _Vessels;
-        public LazyHashableObjectList<Vessel> Vessels
+        List<LazyVessel> _Vessels;
+        public List<LazyVessel> Vessels
         {
             get => _Vessels;
             set
@@ -58,8 +58,6 @@ namespace CrewSchedule
                 if (_Vessels != value)
                 {
                     _Vessels = value;
-                    if (value != null)
-                        value.Parent = this;
                     this.MarkAsDirty();
                 }
             }
@@ -74,7 +72,7 @@ namespace CrewSchedule
         {
             var vesselHashes = this.Vessels?
                 .OrderBy(vessel => vessel.Hash)
-                .Select(vessel => vessel.Hash)
+                .Select(vessel => vessel.FullHash)
                 .ToArray();
             var content = new PlanContent
             {
@@ -86,7 +84,7 @@ namespace CrewSchedule
 
         public override async IAsyncEnumerable<IHashableObject> GetChildObjects()
         {
-            var vessels = this.Vessels.AsEnumerable() ?? new LazyHashableObject<Vessel>[0];
+            var vessels = this.Vessels.AsEnumerable() ?? new List<LazyVessel>();
             foreach (var vessel in vessels)
             {
                 yield return await Task.FromResult(vessel);

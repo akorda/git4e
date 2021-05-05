@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Git4e;
@@ -33,8 +34,8 @@ namespace CrewSchedule
             public Task<IHashableObject> ToHashableObjectAsync(string hash, IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
             {
                 var seamanAssignments = this.SeamanAssignmentHashes
-                    .Select(asnHash => new LazyHashableObject<SeamanAssignment>(asnHash, SeamanAssignment.SeamanAssignmentContentType))
-                    .ToLazyHashableObjectList();
+                    .Select(asnHash => new LazySeamanAssignment(asnHash))
+                    .ToList();
                 var position = new VesselPosition(hash)
                 {
                     VesselPositionId = this.VesselPositionId,
@@ -103,8 +104,8 @@ namespace CrewSchedule
             }
         }
 
-        LazyHashableObjectList<SeamanAssignment> _SeamanAssignments;
-        public LazyHashableObjectList<SeamanAssignment> SeamanAssignments
+        List<LazySeamanAssignment> _SeamanAssignments;
+        public List<LazySeamanAssignment> SeamanAssignments
         {
             get => _SeamanAssignments;
             set
@@ -112,8 +113,6 @@ namespace CrewSchedule
                 if (_SeamanAssignments != value)
                 {
                     _SeamanAssignments = value;
-                    if (value != null)
-                        value.Parent = this;
                     this.MarkAsDirty();
                 }
             }
@@ -129,7 +128,7 @@ namespace CrewSchedule
             var seamanAssignmentHashes = this.SeamanAssignments?
                 //.OrderBy(asn => asn.StartOverlap)
                 .OrderBy(asn => asn.Hash)
-                .Select(asn => asn.Hash)
+                .Select(asn => asn.FullHash)
                 .ToArray();
             var content = new VesselPositionContent
             {
@@ -144,11 +143,24 @@ namespace CrewSchedule
 
         public override async IAsyncEnumerable<IHashableObject> GetChildObjects()
         {
-            var assignments = this.SeamanAssignments ?? new LazyHashableObjectList<SeamanAssignment>();
+            var assignments = this.SeamanAssignments ?? new List<LazySeamanAssignment>();
             foreach (var assignment in assignments)
             {
                 yield return await Task.FromResult(assignment);
             }
+        }
+    }
+
+    public class LazyVesselPosition : LazyHashableObject<VesselPosition, string, int>
+    {
+        public LazyVesselPosition(string fullHash)
+            : base(fullHash, VesselPosition.VesselPositionContentType)
+        {
+        }
+
+        public LazyVesselPosition(VesselPosition vesselPosition)
+            : base(vesselPosition, v => v.DutyRankCode, v => v.PositionNo)
+        {
         }
     }
 }

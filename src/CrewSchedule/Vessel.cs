@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Git4e;
@@ -24,9 +25,10 @@ namespace CrewSchedule
 
             public Task<IHashableObject> ToHashableObjectAsync(string hash, IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
             {
-                var positions = this.PositionHashes
-                    .Select(posHash => new LazyHashableObject<VesselPosition>(posHash, VesselPosition.VesselPositionContentType))
-                    .ToLazyHashableObjectList();
+                var positions =
+                    this.PositionHashes
+                    .Select(posHash => new LazyVesselPosition(posHash))
+                    .ToList();
                 var vessel = new Vessel(hash)
                 {
                     VesselCode = this.VesselCode,
@@ -65,8 +67,8 @@ namespace CrewSchedule
             }
         }
 
-        LazyHashableObjectList<VesselPosition> _Positions;
-        public LazyHashableObjectList<VesselPosition> Positions
+        List<LazyVesselPosition> _Positions;
+        public List<LazyVesselPosition> Positions
         {
             get => _Positions;
             set
@@ -74,8 +76,6 @@ namespace CrewSchedule
                 if (_Positions != value)
                 {
                     _Positions = value;
-                    if (value != null)
-                        value.Parent = this;
                     this.MarkAsDirty();
                 }
             }
@@ -89,10 +89,9 @@ namespace CrewSchedule
         protected override object GetContent()
         {
             var positionHashes = this.Positions?
-                //.OrderBy(pos => pos.DutyRankCode)
-                //.ThenBy(pos => pos.PositionNo)
-                .OrderBy(pos => pos.Hash)
-                .Select(pos => pos.Hash)
+                .OrderBy(pos => pos.HashIncludeProperty1)
+                .ThenBy(pos => pos.HashIncludeProperty2)
+                .Select(pos => pos.FullHash)
                 .ToArray();
             var content = new VesselContent
             {
@@ -105,11 +104,24 @@ namespace CrewSchedule
 
         public override async IAsyncEnumerable<IHashableObject> GetChildObjects()
         {
-            var positions = this.Positions ?? new LazyHashableObjectList<VesselPosition>();
+            var positions = this.Positions ?? new List<LazyVesselPosition>();
             foreach (var position in positions)
             {
                 yield return await Task.FromResult(position);
             }
+        }
+    }
+
+    public class LazyVessel : LazyHashableObject<Vessel, string, string>
+    {
+        public LazyVessel(string fullHash)
+            : base(fullHash, Vessel.VesselContentType)
+        {
+        }
+
+        public LazyVessel(Vessel vessel)
+            : base(vessel, v => v.VesselCode, v => v.Name)
+        {
         }
     }
 }

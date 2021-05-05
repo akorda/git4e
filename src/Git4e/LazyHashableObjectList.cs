@@ -22,14 +22,5 @@ namespace Git4e
             : base(capacity)
         {
         }
-
-        public LazyHashableObject<T> RefreshItem(LazyHashableObject<T> item)
-        {
-            var removed = this.Remove(item);
-            var newItem = new LazyHashableObject<T>(item.FinalValue);
-            this.Add(newItem);
-            this.Parent?.MarkAsDirty();
-            return newItem;
-        }
     }
 }

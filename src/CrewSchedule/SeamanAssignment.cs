@@ -113,14 +113,14 @@ namespace CrewSchedule
         }
 
         //do not serialize
-        public string SeamanCode { get; set; }
+        internal string SeamanCode { get; set; }
 
         public LazyHashableObject<Seaman> Seaman { get; set; }
 
         //do not serialize
-        public string VesselCode { get; set; }
-        public string DutyRankCode { get; set; }
-        public int PositionNo { get; set; }
+        internal string VesselCode { get; set; }
+        internal string DutyRankCode { get; set; }
+        internal int PositionNo { get; set; }
 
         public SeamanAssignment(string hash = null)
             : base(SeamanAssignmentContentType, hash)
@@ -147,6 +147,19 @@ namespace CrewSchedule
             {
                 yield return await Task.FromResult(this.Seaman);
             }
+        }
+    }
+
+    public class LazySeamanAssignment : LazyHashableObject<SeamanAssignment, string>
+    {
+        public LazySeamanAssignment(string fullHash)
+            : base(fullHash, SeamanAssignment.SeamanAssignmentContentType)
+        {
+        }
+
+        public LazySeamanAssignment(SeamanAssignment asn)
+            : base(asn, a => a.Seaman?.FinalValue.SeamanCode)
+        {
         }
     }
 }

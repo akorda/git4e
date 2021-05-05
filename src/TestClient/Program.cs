@@ -111,26 +111,31 @@ namespace TestClient
             //load ZV and change a vessel property
             var commit = await repository.CheckoutAsync(hash, cancellationToken);
             var plan = (await commit.Root) as Plan;
-            //await Task.WhenAll(plan.Vessels.Select(v => v.Value));
 
-            var lazyVessel = plan.Vessels.FirstOrDefault(v => v.FinalValue.VesselCode == "ZV");
+            var lazyVessel = plan.Vessels.FirstOrDefault(v => v.HashIncludeProperty1 == "ZV");
             lazyVessel.FinalValue.Name += "I";
-            await plan.Vessels.RefreshItem(lazyVessel);
+            plan.MarkAsDirty();
 
             var planHash = plan.Hash;
 
             //load UU and change several positions
-            lazyVessel = plan.Vessels.FirstOrDefault(v => v.FinalValue.VesselCode == "UU");
+            lazyVessel = plan.Vessels.FirstOrDefault(v => v.HashIncludeProperty1 == "UU");
             //await Task.WhenAll(lazyVessel.FinalValue.Positions.Select(p => p.Value));
 
-            var lazyPositions = lazyVessel.FinalValue.Positions.Where(p => p.FinalValue.DutyRankCode == "OS");
+            var lazyPositions = lazyVessel.FinalValue.Positions.Where(p => p.HashIncludeProperty1 == "OS");
 
             foreach (var lazyPosition in lazyPositions.ToArray())
             {
                 lazyPosition.FinalValue.PositionNo++;
-                await lazyVessel.FinalValue.Positions.RefreshItem(lazyPosition);
+
+                var asns = lazyPosition.FinalValue.SeamanAssignments.Where(asn => asn.HashIncludeProperty1 == "120238").ToArray();
+                foreach (var asn in asns)
+                {
+                    asn.FinalValue.StartOverlap--;
+                }
             }
-            await plan.Vessels.RefreshItem(lazyVessel);
+            lazyVessel.MarkAsDirty();
+            plan.MarkAsDirty();
 
             planHash = plan.Hash;
 
