@@ -10,5 +10,7 @@ namespace Git4e
         public static IObjectStore ObjectStore { get; set; }
         public static IObjectLoader ObjectLoader { get; set; }
         public static IContentTypeResolver ContentTypeResolver { get; set; }
+        public static Func<string, string, LazyHashableObject> RootFromHashCreator { get; set; }
+        public static Func<IHashableObject, LazyHashableObject> RootFromInstanceCreator { get; set; }
     }
 }

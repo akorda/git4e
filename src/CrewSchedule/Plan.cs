@@ -91,4 +91,21 @@ namespace CrewSchedule
             }
         }
     }
+
+    /// <summary>
+    /// Plan Hash with the following included properties:
+    /// 1. PlanVersionId
+    /// </summary>
+    public class LazyPlan : LazyHashableObject<string>
+    {
+        public LazyPlan(string fullHash)
+            : base(fullHash, Plan.PlanContentType)
+        {
+        }
+
+        public LazyPlan(Plan plan)
+            : base(plan, p => (p as Plan).PlanVersionId)
+        {
+        }
+    }
 }

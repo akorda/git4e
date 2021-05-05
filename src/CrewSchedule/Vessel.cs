@@ -116,7 +116,7 @@ namespace CrewSchedule
     /// 1. VesselCode
     /// 2. Vessel Name
     /// </summary>
-    public class LazyVessel : LazyHashableObject<Vessel, string, string>
+    public class LazyVessel : LazyHashableObject<string, string>
     {
         public LazyVessel(string fullHash)
             : base(fullHash, Vessel.VesselContentType)
@@ -124,7 +124,7 @@ namespace CrewSchedule
         }
 
         public LazyVessel(Vessel vessel)
-            : base(vessel, v => v.VesselCode, v => v.Name)
+            : base(vessel, v => (v as Vessel).VesselCode, v => (v as Vessel).Name)
         {
         }
     }

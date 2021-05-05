@@ -50,7 +50,7 @@ namespace Git4e
 
         public async Task<object> DeserializeContentAsync(Stream stream, Type contentType, CancellationToken cancellationToken = default)
         {
-            //Console.WriteLine($"Content deserialized, Type: {contentType.FullName}");
+            Console.WriteLine($"Content deserialized, Type: {contentType.FullName}");
             var type = await ReadHeaderAsync(stream, cancellationToken);
             var content = Serializer.Deserialize(contentType, stream);
             return content;

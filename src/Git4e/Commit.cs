@@ -20,7 +20,7 @@ namespace Git4e
             [ProtoMember(3)]
             public string Message { get; set; }
             [ProtoMember(4)]
-            public string RootHash { get; set; }
+            public string RootFullHash { get; set; }
             [ProtoMember(5)]
             public string RootContentType { get; set; }
             [ProtoMember(6)]
@@ -28,12 +28,13 @@ namespace Git4e
 
             public Task<IHashableObject> ToHashableObjectAsync(string hash, IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
             {
+                Func<string, string, LazyHashableObject> rootCreator = Globals.RootFromHashCreator ?? new Func<string, string, LazyHashableObject>((rh, rct) => new LazyHashableObject(rh, rct));
                 var commit = new Commit(hash)
                 {
                     Author = this.Author,
                     When = this.When,
                     Message = this.Message,
-                    Root = new LazyHashableObject(this.RootHash, this.RootContentType),
+                    Root = rootCreator(this.RootFullHash, this.RootContentType),
                     ParentCommitHashes = this.ParentCommitHashes
                 };
                 return Task.FromResult(commit as IHashableObject);
@@ -58,7 +59,7 @@ namespace Git4e
                 Author = this.Author,
                 When = this.When,
                 Message = this.Message,
-                RootHash = this.Root.Hash,
+                RootFullHash = this.Root.FullHash,
                 RootContentType = this.Root.Type,
                 ParentCommitHashes = this.ParentCommitHashes
             };

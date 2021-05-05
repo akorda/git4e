@@ -7,8 +7,7 @@ using System.Threading.Tasks;
 
 namespace Git4e
 {
-    public class LazyHashableObject<T> : AsyncLazy<T>, IHashableObject
-        where T: IHashableObject
+    public class LazyHashableObject : AsyncLazy<IHashableObject>, IHashableObject
     {
         string _Hash;
         public string Hash
@@ -38,14 +37,14 @@ namespace Git4e
                 var type = Globals.ContentTypeResolver.ResolveContentType(typeName);
                 var objectContent = (await Globals.ObjectStore.GetObjectContentAsync(hash, type)) as IContent;
                 var hashableObject = await objectContent.ToHashableObjectAsync(hash, Globals.ServiceProvider);
-                return (T)hashableObject;
+                return hashableObject;
             })
         {
             this.Hash = hash;
             this.Type = type;
         }
 
-        public LazyHashableObject(T hashableObject)
+        public LazyHashableObject(IHashableObject hashableObject)
             : base(() => hashableObject)
         {
             this.Hash = hashableObject.Hash;
@@ -71,21 +70,7 @@ namespace Git4e
         }
     }
 
-    public class LazyHashableObject : LazyHashableObject<IHashableObject>
-    {
-        public LazyHashableObject(string hash, string type)
-            : base(hash, type)
-        {
-        }
-
-        public LazyHashableObject(IHashableObject hashableObject)
-            : base(hashableObject)
-        {
-        }
-    }
-
-    public class LazyHashableObject<T, THashIncludeProperty1> : LazyHashableObject<T>
-        where T : IHashableObject
+    public class LazyHashableObject<THashIncludeProperty1> : LazyHashableObject
     {
         public THashIncludeProperty1 HashIncludeProperty1 { get; set; }
 
@@ -96,7 +81,7 @@ namespace Git4e
             this.HashIncludeProperty1 = (THashIncludeProperty1)Convert.ChangeType(System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(hashParts[1])), typeof(THashIncludeProperty1));
         }
 
-        public LazyHashableObject(T hashableObject, Func<T, THashIncludeProperty1> hashIncludePropertyProvider)
+        public LazyHashableObject(IHashableObject hashableObject, Func<IHashableObject, THashIncludeProperty1> hashIncludePropertyProvider)
             : base(hashableObject)
         {
             this.HashIncludeProperty1 = hashIncludePropertyProvider(hashableObject);
@@ -114,8 +99,7 @@ namespace Git4e
         }
     }
 
-    public class LazyHashableObject<T, THashIncludeProperty1, THashIncludeProperty2> : LazyHashableObject<T>
-        where T : IHashableObject
+    public class LazyHashableObject<THashIncludeProperty1, THashIncludeProperty2> : LazyHashableObject
     {
         public THashIncludeProperty1 HashIncludeProperty1 { get; set; }
         public THashIncludeProperty2 HashIncludeProperty2 { get; set; }
@@ -128,7 +112,7 @@ namespace Git4e
             this.HashIncludeProperty2 = (THashIncludeProperty2)Convert.ChangeType(System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(hashParts[2])), typeof(THashIncludeProperty2));
         }
 
-        public LazyHashableObject(T hashableObject, Func<T, THashIncludeProperty1> hashIncludeProperty1Provider, Func<T, THashIncludeProperty2> hashIncludeProperty2Provider)
+        public LazyHashableObject(IHashableObject hashableObject, Func<IHashableObject, THashIncludeProperty1> hashIncludeProperty1Provider, Func<IHashableObject, THashIncludeProperty2> hashIncludeProperty2Provider)
             : base(hashableObject)
         {
             this.HashIncludeProperty1 = hashIncludeProperty1Provider(hashableObject);

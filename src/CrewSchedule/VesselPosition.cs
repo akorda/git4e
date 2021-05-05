@@ -155,7 +155,7 @@ namespace CrewSchedule
     /// 1. DutyRankCode
     /// 2. PositionNo
     /// </summary>
-    public class LazyVesselPosition : LazyHashableObject<VesselPosition, string, int>
+    public class LazyVesselPosition : LazyHashableObject<string, int>
     {
         public LazyVesselPosition(string fullHash)
             : base(fullHash, VesselPosition.VesselPositionContentType)
@@ -163,7 +163,7 @@ namespace CrewSchedule
         }
 
         public LazyVesselPosition(VesselPosition vesselPosition)
-            : base(vesselPosition, v => v.DutyRankCode, v => v.PositionNo)
+            : base(vesselPosition, v => (v as VesselPosition).DutyRankCode, v => (v as VesselPosition).PositionNo)
         {
         }
     }

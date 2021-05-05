@@ -134,7 +134,7 @@ namespace CrewSchedule
                         seamanAssignments.Add(asn);
 
                     if (seamenMap.TryGetValue(asn.SeamanCode, out var seaman))
-                        asn.Seaman = new LazyHashableObject<Seaman>(seaman);
+                        asn.Seaman = new LazyHashableObject(seaman);
                 }
 
                 foreach (var pos in Positions)

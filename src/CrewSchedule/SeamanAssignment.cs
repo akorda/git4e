@@ -115,7 +115,7 @@ namespace CrewSchedule
         //do not serialize
         internal string SeamanCode { get; set; }
 
-        public LazyHashableObject<Seaman> Seaman { get; set; }
+        public LazyHashableObject Seaman { get; set; }
 
         //do not serialize
         internal string VesselCode { get; set; }
@@ -155,7 +155,7 @@ namespace CrewSchedule
     /// 1. SeamanAssignmentId
     /// 2. Seaman->SeamanCode
     /// </summary>
-    public class LazySeamanAssignment : LazyHashableObject<SeamanAssignment, string, string>
+    public class LazySeamanAssignment : LazyHashableObject<string, string>
     {
         public LazySeamanAssignment(string fullHash)
             : base(fullHash, SeamanAssignment.SeamanAssignmentContentType)
@@ -163,7 +163,7 @@ namespace CrewSchedule
         }
 
         public LazySeamanAssignment(SeamanAssignment asn)
-            : base(asn, a => a.SeamanAssignmentId, a => a.Seaman?.FinalValue.SeamanCode)
+            : base(asn, a => (a as SeamanAssignment).SeamanAssignmentId, a => (a as SeamanAssignment).Seaman.GetValue<Seaman>().SeamanCode)
         {
         }
     }

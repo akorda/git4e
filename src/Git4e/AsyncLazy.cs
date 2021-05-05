@@ -18,6 +18,12 @@ namespace Git4e
 
         public TaskAwaiter<T> GetAwaiter() => Value.GetAwaiter();
 
-        public T FinalValue { get => this.Value.Result; }
+        //public T FinalValue { get => this.Value.Result; }
+
+        public TReal GetValue<TReal>()
+            where TReal: T
+        {
+            return (TReal)this.Value.Result;
+        }
     }
 }

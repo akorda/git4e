@@ -30,14 +30,22 @@ namespace TestClient
             Globals.ObjectStore = objectStore;
             Globals.ObjectLoader = objectLoader;
             Globals.ContentTypeResolver = contentTypeResolver;
-
-            var hash = await objectStore.ReadHeadAsync(cancellationToken);
-            string parentCommitHash;
-            if (hash != null)
+            Globals.RootFromHashCreator = new Func<string, string, LazyHashableObject>((rootHash, rootContentType) =>
             {
-                var commit = await repository.CheckoutAsync(hash, cancellationToken);
-                parentCommitHash = commit.Hash;
-            }
+                if (rootHash.IndexOf("|") != -1)
+                    return new LazyPlan(rootHash);
+                else
+                    return new LazyHashableObject(rootHash, rootContentType);
+            });
+            Globals.RootFromInstanceCreator = new Func<IHashableObject, LazyHashableObject>(root => new LazyPlan(root as Plan));
+
+            //var hash = await objectStore.ReadHeadAsync(cancellationToken);
+            //string parentCommitHash;
+            //if (hash != null)
+            //{
+            //    var commit = await repository.CheckoutAsync(hash, cancellationToken);
+            //    parentCommitHash = commit.Hash;
+            //}
 
             //Console.WriteLine($"Author: {commit.Author}");
             //var rootHash = commit.Root.Hash;
@@ -56,7 +64,7 @@ namespace TestClient
             var objectContent = await objectStore.GetObjectContentAsync(commitHash, contentType, cancellationToken);
             var commitContent = objectContent as Commit.CommitContent;
             var loadedCommit = (await commitContent.ToHashableObjectAsync(commitHash, serviceProvider, cancellationToken)) as Commit;
-            parentCommitHash = loadedCommit.ParentCommitHashes?.FirstOrDefault();
+            var parentCommitHash = loadedCommit.ParentCommitHashes?.FirstOrDefault();
             if (parentCommitHash != null)
             {
                 objectContent = await objectStore.GetObjectContentAsync(parentCommitHash, contentType, cancellationToken);
@@ -110,34 +118,39 @@ namespace TestClient
 
             //load ZV and change a vessel property
             var commit = await repository.CheckoutAsync(hash, cancellationToken);
-            var plan = (await commit.Root) as Plan;
+            var root = commit.Root as LazyHashableObject<string>;
+            if (root.HashIncludeProperty1 != "1")
+                return null;
+
+            //var plan = (await commit.Root) as Plan;
+            var plan = commit.Root.GetValue<Plan>();
 
             var lazyVessel = plan.Vessels.FirstOrDefault(v => v.HashIncludeProperty1 == "ZV");
-            lazyVessel.FinalValue.Name += "I";
+            lazyVessel.GetValue<Vessel>().Name += "I";
             plan.MarkAsDirty();
 
-            var planHash = plan.Hash;
+            var planHash = plan.FullHash;
 
             //load UU and change several positions
             lazyVessel = plan.Vessels.FirstOrDefault(v => v.HashIncludeProperty1 == "UU");
             //await Task.WhenAll(lazyVessel.FinalValue.Positions.Select(p => p.Value));
 
-            var lazyPositions = lazyVessel.FinalValue.Positions.Where(p => p.HashIncludeProperty1 == "OS");
+            var lazyPositions = lazyVessel.GetValue<Vessel>().Positions.Where(p => p.HashIncludeProperty1 == "OS");
 
             foreach (var lazyPosition in lazyPositions.ToArray())
             {
-                lazyPosition.FinalValue.PositionNo++;
+                lazyPosition.GetValue<VesselPosition>().PositionNo++;
 
-                var asns = lazyPosition.FinalValue.SeamanAssignments.Where(asn => asn.HashIncludeProperty1 == "120238").ToArray();
+                var asns = lazyPosition.GetValue<VesselPosition>().SeamanAssignments.Where(asn => asn.HashIncludeProperty1 == "120238").ToArray();
                 foreach (var asn in asns)
                 {
-                    asn.FinalValue.StartOverlap--;
+                    asn.GetValue<SeamanAssignment>().StartOverlap--;
                 }
             }
             lazyVessel.MarkAsDirty();
             plan.MarkAsDirty();
 
-            planHash = plan.Hash;
+            planHash = plan.FullHash;
 
             var commitHash = await repository.CommitAsync("akorda", DateTime.Now, "Change Vessel Name", plan, cancellationToken);
             return commitHash;
