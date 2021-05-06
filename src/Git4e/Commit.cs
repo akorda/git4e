@@ -6,7 +6,7 @@ using ProtoBuf;
 
 namespace Git4e
 {
-    public class Commit : HashableObject
+    public class Commit : HashableObject, ICommit
     {
         public const string ContentTypeName = "Commit";
 

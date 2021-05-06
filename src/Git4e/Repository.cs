@@ -23,7 +23,7 @@ namespace Git4e
 
         public string HeadCommitHash { get; private set; }
 
-        public async Task<Commit> CheckoutAsync(string commitHash, CancellationToken cancellationToken = default)
+        public async Task<ICommit> CheckoutAsync(string commitHash, CancellationToken cancellationToken = default)
         {
             var contentTypeName = await this.ObjectStore.GetObjectTypeAsync(commitHash, cancellationToken);
             if (contentTypeName != Commit.ContentTypeName)
@@ -33,8 +33,8 @@ namespace Git4e
 
             var contentType = this.ContentTypeResolver.ResolveContentType(contentTypeName);
             var objectContent = await this.ObjectStore.GetObjectContentAsync(commitHash, contentType, cancellationToken);
-            var commitContent = objectContent as Commit.CommitContent;
-            var commit = (await commitContent.ToHashableObjectAsync(commitHash, this.ServiceProvider, cancellationToken)) as Commit;
+            var commitContent = objectContent as IContent;
+            var commit = (await commitContent.ToHashableObjectAsync(commitHash, this.ServiceProvider, cancellationToken)) as ICommit;
             if (commit != null)
             {
                 this.HeadCommitHash = commitHash;
