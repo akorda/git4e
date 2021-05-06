@@ -11,7 +11,7 @@ namespace Git4e
         public string ComputeHash(Stream stream)
         {
             var rawHash = Sha1.ComputeHash(stream);
-            var hash = BitConverter.ToString(rawHash).Replace("-", "");
+            var hash = BitConverter.ToString(rawHash).Replace("-", "").ToLowerInvariant();
             return hash;
         }
     }
