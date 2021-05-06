@@ -161,12 +161,10 @@ namespace TestClient
             return new ServiceCollection()
                 .AddLogging()
                 .AddSingleton<IContentSerializer, ProtobufContentSerializer>()
-                //.AddSingleton<IContentSerializer, JsonContentSerializer>()
                 .AddSingleton<IHashCalculator, SHA1HashCalculator>()
                 .AddSingleton<IContentTypeResolver>(CreateContentTypeResolver())
                 .AddSingleton<PhysicalFilesObjectStoreOptions>()
                 .AddSingleton<IObjectStore, PhysicalFilesObjectStore>()
-                //.AddSingleton<IObjectStore, InMemoryObjectStore>()
                 .AddSingleton<IObjectLoader, ObjectLoader>()
                 .AddSingleton<IRepository, Repository>()
                 .BuildServiceProvider();
