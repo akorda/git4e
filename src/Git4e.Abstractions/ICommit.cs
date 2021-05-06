@@ -7,7 +7,7 @@ namespace Git4e
         string Author { get; set; }
         DateTime When { get; set; }
         string Message { get; set; }
-        LazyHashableObject Root { get; set; }
+        LazyHashableObjectBase Root { get; set; }
         string[] ParentCommitHashes { get; set; }
     }
 }

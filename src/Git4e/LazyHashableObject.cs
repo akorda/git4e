@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace Git4e
 {
-    public class LazyHashableObject : AsyncLazy<IHashableObject>, IHashableObject
+    public class LazyHashableObject : LazyHashableObjectBase
     {
         string _Hash;
-        public string Hash
+        public override string Hash
         {
             get
             {
@@ -20,15 +20,15 @@ namespace Git4e
                     _Hash = this.Value.Result.Hash;
                 return _Hash;
             }
-            private set
+            protected set
             {
                 _Hash = value;
             }
         }
 
-        public string Type { get; private set; }
+        public override string Type { get; protected set; }
 
-        public virtual string FullHash { get => this.Hash; }
+        public override string FullHash { get => this.Hash; }
 
         public LazyHashableObject(string hash, string type)
             : base(async () =>
@@ -51,20 +51,20 @@ namespace Git4e
             this.Type = hashableObject.Type;
         }
 
-        public async Task SerializeContentAsync(Stream stream, CancellationToken cancellationToken = default)
+        public override async Task SerializeContentAsync(Stream stream, CancellationToken cancellationToken = default)
         {
             var value = await this.Value;
             await value.SerializeContentAsync(stream, cancellationToken);
         }
 
-        public async IAsyncEnumerable<IHashableObject> GetChildObjects()
+        public override async IAsyncEnumerable<IHashableObject> GetChildObjects()
         {
             var value = await this.Value;
             await foreach (var child in value.GetChildObjects())
                 yield return child;
         }
 
-        public void MarkAsDirty()
+        public override void MarkAsDirty()
         {
             this.Hash = null;
         }

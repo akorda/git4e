@@ -28,7 +28,7 @@ namespace Git4e
 
             public Task<IHashableObject> ToHashableObjectAsync(string hash, IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
             {
-                Func<string, string, LazyHashableObject> rootCreator = Globals.RootFromHashCreator ?? new Func<string, string, LazyHashableObject>((rh, rct) => new LazyHashableObject(rh, rct));
+                Func<string, string, LazyHashableObjectBase> rootCreator = Globals.RootFromHashCreator ?? new Func<string, string, LazyHashableObjectBase>((rh, rct) => new LazyHashableObject(rh, rct));
                 var commit = new Commit(hash)
                 {
                     Author = this.Author,
@@ -44,7 +44,7 @@ namespace Git4e
         public string Author { get; set; }
         public DateTime When { get; set; }
         public string Message { get; set; }
-        public LazyHashableObject Root { get; set; }
+        public LazyHashableObjectBase Root { get; set; }
         public string[] ParentCommitHashes { get; set; }
 
         public Commit(string hash = null)

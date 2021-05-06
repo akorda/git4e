@@ -44,7 +44,7 @@ namespace Git4e
 
         public async Task<string> CommitAsync(string author, DateTime when, string message, IHashableObject root, CancellationToken cancellationToken = default)
         {
-            Func<IHashableObject, LazyHashableObject> rootCreator = Globals.RootFromInstanceCreator ?? new Func<IHashableObject, LazyHashableObject>(r => new LazyHashableObject(r));
+            Func<IHashableObject, LazyHashableObjectBase> rootCreator = Globals.RootFromInstanceCreator ?? new Func<IHashableObject, LazyHashableObjectBase>(r => new LazyHashableObject(r));
 
             var commit = new Commit
             {
