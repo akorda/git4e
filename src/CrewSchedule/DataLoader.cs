@@ -12,11 +12,11 @@ namespace CrewSchedule
 {
     public class DataLoader
     {
-        public IEnumerable<Seaman> Seamen { get; private set; }
-        public IEnumerable<SeamanAssignment> Assignments { get; private set; }
-        public IEnumerable<VesselPosition> Positions { get; private set; }
-        public IEnumerable<Vessel> Vessels { get; private set; }
-        public Plan Plan { get; private set; }
+        IEnumerable<Seaman> Seamen { get; set; }
+        IEnumerable<SeamanAssignment> Assignments { get; set; }
+        IEnumerable<VesselPosition> Positions { get; set; }
+        IEnumerable<Vessel> Vessels { get; set; }
+        public LazyPlan Plan { get; private set; }
 
         public async Task LoadDataAsync(
             string connectionString,
@@ -154,9 +154,13 @@ namespace CrewSchedule
                 foreach (var vessel in Vessels)
                     vessel.Positions = vesselsMap[vessel.VesselCode].Select(vp => new LazyVesselPosition(vp)).ToList();
 
-                this.Plan = ActivatorUtilities.CreateInstance<Plan>(serviceProvider);
-                this.Plan.PlanVersionId = planVersionId;
-                this.Plan.Vessels = Vessels.Select(vessel => new LazyVessel(vessel)).ToList();
+                var plan = new Plan
+                {
+                    PlanVersionId = planVersionId,
+                    Vessels = Vessels.Select(vessel => new LazyVessel(vessel)).ToList()
+                };
+
+                this.Plan = new LazyPlan(plan);
             }
         }
     }

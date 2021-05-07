@@ -11,6 +11,5 @@ namespace Git4e
         public static IObjectLoader ObjectLoader { get; set; }
         public static IContentTypeResolver ContentTypeResolver { get; set; }
         public static Func<string, string, LazyHashableObjectBase> RootFromHashCreator { get; set; }
-        public static Func<IHashableObject, LazyHashableObjectBase> RootFromInstanceCreator { get; set; }
     }
 }
