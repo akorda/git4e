@@ -141,7 +141,7 @@ namespace TestClient
             {
                 lazyPosition.GetValue<VesselPosition>().PositionNo++;
 
-                var asns = lazyPosition.GetValue<VesselPosition>().SeamanAssignments.Where(asn => asn.HashIncludeProperty1 == "120238").ToArray();
+                var asns = lazyPosition.GetValue<VesselPosition>().SeamanAssignments.Where(asn => asn.HashIncludeProperty2 == "120238").ToArray();
                 foreach (var asn in asns)
                 {
                     asn.GetValue<SeamanAssignment>().StartOverlap--;
