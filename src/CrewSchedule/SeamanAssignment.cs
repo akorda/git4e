@@ -36,7 +36,7 @@ namespace CrewSchedule
                     StartDuties = this.StartDuties,
                     EndDuties = this.EndDuties,
                     EndOverlap = this.EndOverlap,
-                    Seaman = new LazyHashableObject<Seaman>(this.SeamanFullHash, CrewSchedule.Seaman.SeamanContentType)
+                    Seaman = new LazyHashableObject(this.SeamanFullHash, CrewSchedule.Seaman.SeamanContentType)
                 };
                 return Task.FromResult(assignment as IHashableObject);
             }
@@ -163,7 +163,7 @@ namespace CrewSchedule
         }
 
         public LazySeamanAssignment(SeamanAssignment asn)
-            : base(asn, a => (a as SeamanAssignment).SeamanAssignmentId, a => (a as SeamanAssignment).Seaman.GetValue<Seaman>().SeamanCode)
+            : base(asn, a => (a as SeamanAssignment).SeamanAssignmentId, a => (a as SeamanAssignment).Seaman?.GetValue<Seaman>().SeamanCode)
         {
         }
     }
