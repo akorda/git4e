@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Chinook\Chinook.csproj" />
     <ProjectReference Include="..\CrewSchedule\CrewSchedule.csproj" />
     <ProjectReference Include="..\Git4e\Git4e.csproj" />
   </ItemGroup>
