@@ -40,11 +40,9 @@ namespace TestClient
             //    else
             //        return new LazyHashableObject(rootHash, rootContentType);
             //});
-            //Globals.RootFromInstanceCreator = new Func<IHashableObject, LazyHashableObject>(root => new LazyPlan(root as Plan));
 
             //chinook
             Globals.RootFromHashCreator = new Func<string, string, LazyHashableObject>((rootHash, rootContentType) => new LazyLibrary(rootHash));
-            Globals.RootFromInstanceCreator = new Func<IHashableObject, LazyHashableObject>(root => new LazyLibrary(root as Library));
 
             //var hash = await objectStore.ReadHeadAsync(cancellationToken);
             //string parentCommitHash;
@@ -175,7 +173,8 @@ namespace TestClient
 
             planHash = plan.FullHash;
 
-            var commitHash = await repository.CommitAsync("akorda", DateTime.Now, "Change Vessel Name", plan, cancellationToken);
+            var lazyPlan = new LazyPlan(plan);
+            var commitHash = await repository.CommitAsync("akorda", DateTime.Now, "Change Vessel Name", lazyPlan, cancellationToken);
             return commitHash;
         }
 

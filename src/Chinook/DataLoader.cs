@@ -10,12 +10,12 @@ namespace Chinook
 {
     public class DataLoader
     {
-        public IEnumerable<Artist> Artists { get; private set; }
-        public IEnumerable<Album> Albums { get; private set; }
-        public IEnumerable<Track> Tracks { get; private set; }
-        public IEnumerable<Genre> Genres { get; private set; }
-        public IEnumerable<MediaType> MediaTypes { get; private set; }
-        public Library Library { get; private set; }
+        IEnumerable<Artist> Artists { get; set; }
+        IEnumerable<Album> Albums { get; set; }
+        IEnumerable<Track> Tracks { get; set; }
+        IEnumerable<Genre> Genres { get; set; }
+        IEnumerable<MediaType> MediaTypes { get; set; }
+        public LazyLibrary Library { get; private set; }
 
         public async Task LoadDataAsync(
             string connectionString,
@@ -74,10 +74,12 @@ namespace Chinook
                     }
                 }
 
-                this.Library = new Library
+                var library = new Library
                 {
                     Artists = this.Artists.Select(artist => new LazyArtist(artist)).ToList()
                 };
+
+                this.Library = new LazyLibrary(library);
             }
         }
     }
