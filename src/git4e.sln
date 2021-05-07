@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CrewSchedule", "CrewSchedul
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestClient", "TestClient\TestClient.csproj", "{03CDF7C7-2D0C-4EDC-B761-241280BCE892}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Git4e.Abstractions", "Git4e.Abstractions\Git4e.Abstractions.csproj", "{F6BD23D2-01F4-4D27-B507-499FD64B5FD6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Git4e.Abstractions", "Git4e.Abstractions\Git4e.Abstractions.csproj", "{F6BD23D2-01F4-4D27-B507-499FD64B5FD6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chinook", "Chinook\Chinook.csproj", "{65B18556-0CE8-4B7A-BCD5-C8F580975A3E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{F6BD23D2-01F4-4D27-B507-499FD64B5FD6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F6BD23D2-01F4-4D27-B507-499FD64B5FD6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F6BD23D2-01F4-4D27-B507-499FD64B5FD6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{65B18556-0CE8-4B7A-BCD5-C8F580975A3E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{65B18556-0CE8-4B7A-BCD5-C8F580975A3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{65B18556-0CE8-4B7A-BCD5-C8F580975A3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{65B18556-0CE8-4B7A-BCD5-C8F580975A3E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
