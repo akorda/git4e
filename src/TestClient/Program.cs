@@ -195,12 +195,23 @@ namespace TestClient
         private static IContentTypeResolver CreateContentTypeResolver()
         {
             var resolver = new ContentTypeResolver();
+
             resolver.RegisterContentType(Commit.ContentTypeName, typeof(Commit.CommitContent));
+
+            //Crew Schedule
             resolver.RegisterContentType(Plan.PlanContentType, typeof(Plan.PlanContent));
             resolver.RegisterContentType(Seaman.SeamanContentType, typeof(Seaman.SeamanContent));
             resolver.RegisterContentType(SeamanAssignment.SeamanAssignmentContentType, typeof(SeamanAssignment.SeamanAssignmentContent));
             resolver.RegisterContentType(Vessel.VesselContentType, typeof(Vessel.VesselContent));
             resolver.RegisterContentType(VesselPosition.VesselPositionContentType, typeof(VesselPosition.VesselPositionContent));
+
+            //Chinook
+            resolver.RegisterContentType(Library.LibraryContentType, typeof(Library.LibraryContent));
+            resolver.RegisterContentType(Artist.ArtistContentType, typeof(Artist.ArtistContent));
+            resolver.RegisterContentType(Album.AlbumContentType, typeof(Album.AlbumContent));
+            resolver.RegisterContentType(Track.TrackContentType, typeof(Track.TrackContent));
+            resolver.RegisterContentType(Genre.GenreContentType, typeof(Genre.GenreContent));
+            resolver.RegisterContentType(MediaType.MediaTypeContentType, typeof(MediaType.MediaTypeContent));
             return resolver;
         }
     }
