@@ -138,4 +138,51 @@ namespace Git4e
             }
         }
     }
+
+    public class LazyHashableObject<THashIncludeProperty1, THashIncludeProperty2, THashIncludeProperty3> : LazyHashableObject
+    {
+        public THashIncludeProperty1 HashIncludeProperty1 { get; set; }
+        public THashIncludeProperty2 HashIncludeProperty2 { get; set; }
+        public THashIncludeProperty3 HashIncludeProperty3 { get; set; }
+
+        public LazyHashableObject(string fullHash, string type)
+            : base(fullHash.Split('|').First(), type)
+        {
+            var hashParts = fullHash.Split('|');
+            this.HashIncludeProperty1 = (THashIncludeProperty1)Convert.ChangeType(System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(hashParts[1])), typeof(THashIncludeProperty1));
+            this.HashIncludeProperty2 = (THashIncludeProperty2)Convert.ChangeType(System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(hashParts[2])), typeof(THashIncludeProperty2));
+            this.HashIncludeProperty3 = (THashIncludeProperty3)Convert.ChangeType(System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(hashParts[3])), typeof(THashIncludeProperty3));
+        }
+
+        public LazyHashableObject(IHashableObject hashableObject, Func<IHashableObject, THashIncludeProperty1> hashIncludeProperty1Provider, Func<IHashableObject, THashIncludeProperty2> hashIncludeProperty2Provider, Func<IHashableObject, THashIncludeProperty3> hashIncludeProperty3Provider)
+            : base(hashableObject)
+        {
+            this.HashIncludeProperty1 = hashIncludeProperty1Provider(hashableObject);
+            this.HashIncludeProperty2 = hashIncludeProperty2Provider(hashableObject);
+            this.HashIncludeProperty3 = hashIncludeProperty3Provider(hashableObject);
+        }
+
+        /// <summary>
+        /// <inheritDoc />
+        /// </summary>
+        public override string FullHash
+        {
+            get
+            {
+                var prop1Text = this.HashIncludeProperty1?.ToString() ?? "";
+                var prop1Bytes = System.Text.Encoding.UTF8.GetBytes(prop1Text);
+                var hashPart1 = Convert.ToBase64String(prop1Bytes);
+
+                var prop2Text = this.HashIncludeProperty2?.ToString() ?? "";
+                var prop2Bytes = System.Text.Encoding.UTF8.GetBytes(prop2Text);
+                var hashPart2 = Convert.ToBase64String(prop2Bytes);
+
+                var prop3Text = this.HashIncludeProperty3?.ToString() ?? "";
+                var prop3Bytes = System.Text.Encoding.UTF8.GetBytes(prop3Text);
+                var hashPart3 = Convert.ToBase64String(prop3Bytes);
+
+                return $"{this.Hash}|{hashPart1}|{hashPart2}|{hashPart3}";
+            }
+        }
+    }
 }
