@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Chinook;
 using CrewSchedule;
 using Git4e;
 using Microsoft.Extensions.Configuration;
@@ -30,14 +31,20 @@ namespace TestClient
             Globals.ObjectStore = objectStore;
             Globals.ObjectLoader = objectLoader;
             Globals.ContentTypeResolver = contentTypeResolver;
-            Globals.RootFromHashCreator = new Func<string, string, LazyHashableObject>((rootHash, rootContentType) =>
-            {
-                if (rootHash.IndexOf("|") != -1)
-                    return new LazyPlan(rootHash);
-                else
-                    return new LazyHashableObject(rootHash, rootContentType);
-            });
-            Globals.RootFromInstanceCreator = new Func<IHashableObject, LazyHashableObject>(root => new LazyPlan(root as Plan));
+
+            //crew schedule
+            //Globals.RootFromHashCreator = new Func<string, string, LazyHashableObject>((rootHash, rootContentType) =>
+            //{
+            //    if (rootHash.IndexOf("|") != -1)
+            //        return new LazyPlan(rootHash);
+            //    else
+            //        return new LazyHashableObject(rootHash, rootContentType);
+            //});
+            //Globals.RootFromInstanceCreator = new Func<IHashableObject, LazyHashableObject>(root => new LazyPlan(root as Plan));
+
+            //chinook
+            Globals.RootFromHashCreator = new Func<string, string, LazyHashableObject>((rootHash, rootContentType) => new LazyLibrary(rootHash));
+            Globals.RootFromInstanceCreator = new Func<IHashableObject, LazyHashableObject>(root => new LazyLibrary(root as Library));
 
             //var hash = await objectStore.ReadHeadAsync(cancellationToken);
             //string parentCommitHash;
@@ -55,8 +62,9 @@ namespace TestClient
 
             //string parentCommitHash = null;
 
+            var commitHash = await UseCase0(configuration, objectStore, repository, cancellationToken);
             //var commitHash = await UseCase1(configuration, serviceProvider, repository, cancellationToken);
-            var commitHash = await UseCase2(configuration, serviceProvider, objectStore, repository, cancellationToken);
+            //var commitHash = await UseCase2(configuration, serviceProvider, objectStore, repository, cancellationToken);
 
             //load a full-object from hash
             var contentTypeName = await objectStore.GetObjectTypeAsync(commitHash, cancellationToken);
@@ -88,6 +96,21 @@ namespace TestClient
                 .Build();
         }
 
+        private static async Task<string> UseCase0(IConfiguration configuration, IObjectStore objectStore, IRepository repository, CancellationToken cancellationToken = default)
+        {
+            var connectionString = configuration.GetConnectionString("Chinook");
+
+            var data = new Chinook.DataLoader();
+            await data.LoadDataAsync(connectionString, cancellationToken);
+
+            var headHash = await objectStore.ReadHeadAsync(cancellationToken);
+            if (headHash != null)
+                await repository.CheckoutAsync(headHash, cancellationToken);
+
+            var commitHash = await repository.CommitAsync("akorda", DateTime.Now, "Fix albums", data.Library, cancellationToken);
+            return commitHash;
+        }
+
         /// <summary>
         /// Use Case 1:
         /// 1. Checkout latest repo version
@@ -104,7 +127,7 @@ namespace TestClient
             var connectionString = configuration.GetConnectionString("CrewSchedule");
             var planVersionId = "1";
 
-            var data = new DataLoader();
+            var data = new CrewSchedule.DataLoader();
             await data.LoadDataAsync(connectionString, planVersionId, serviceProvider, cancellationToken);
 
             var commitHash = await repository.CommitAsync("akorda", DateTime.Now, "Fix CAPs on Athina", data.Plan, cancellationToken);
