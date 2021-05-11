@@ -5,13 +5,10 @@ namespace Git4e
 {
     public class PhysicalFilesObjectStoreOptions
     {
-        public const string ObjectDirectoryName = "objects";
+        public const string DefaultRootDirectoryName = ".git4e";
+        public const string DefaultObjectDirectoryName = "objects";
 
         public string RootDirectory { get; set; }
-
-        public PhysicalFilesObjectStoreOptions()
-        {
-            this.RootDirectory = Path.Combine(Environment.CurrentDirectory, ObjectDirectoryName);
-        }
+        public string ObjectsDirectory { get => Path.Combine(this.RootDirectory, DefaultObjectDirectoryName); }
     }
 }

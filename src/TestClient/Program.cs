@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -185,7 +186,13 @@ namespace TestClient
                 .AddSingleton<IContentSerializer, ProtobufContentSerializer>()
                 .AddSingleton<IHashCalculator, SHA1HashCalculator>()
                 .AddSingleton<IContentTypeResolver>(CreateContentTypeResolver())
-                .AddSingleton<PhysicalFilesObjectStoreOptions>()
+                .AddSingleton<PhysicalFilesObjectStoreOptions>(_ =>
+                {
+                    var options = new PhysicalFilesObjectStoreOptions();
+                    var path = Path.GetDirectoryName(typeof(Program).Assembly.Location);
+                    options.RootDirectory = Path.Combine(path, PhysicalFilesObjectStoreOptions.DefaultRootDirectoryName);
+                    return options;
+                })
                 .AddSingleton<IObjectStore, PhysicalFilesObjectStore>()
                 .AddSingleton<IObjectLoader, ObjectLoader>()
                 .AddSingleton<IRepository, Repository>()

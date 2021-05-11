@@ -19,19 +19,19 @@ namespace Git4e
         public PhysicalFilesObjectStore(
             IContentSerializer contentSerializer,
             IHashCalculator hashCalculator,
-            PhysicalFilesObjectStoreOptions options = null)
+            PhysicalFilesObjectStoreOptions options)
         {
             this.ContentSerializer = contentSerializer ?? throw new ArgumentNullException(nameof(contentSerializer));
             this.HashCalculator = hashCalculator ?? throw new ArgumentNullException(nameof(hashCalculator));
-            this.Options = options ?? new PhysicalFilesObjectStoreOptions();
+            this.Options = options ?? throw new ArgumentNullException(nameof(options));
         }
 
         public async Task SaveTreeAsync(IHashableObject content, CancellationToken cancellationToken = default)
         {
-            var root = this.Options.RootDirectory;
+            var objectsDir = this.Options.ObjectsDirectory;
             var hash = content.Hash;
             var objectDirectoryName = hash.Substring(0, ObjectDirLength);
-            var objectDirectory = Path.Combine(root, objectDirectoryName);
+            var objectDirectory = Path.Combine(objectsDir, objectDirectoryName);
             var filename = hash.Substring(ObjectDirLength);
             var path = Path.Combine(objectDirectory, filename);
 
@@ -57,10 +57,10 @@ namespace Git4e
 
         public async Task SaveObjectAsync(IHashableObject content, CancellationToken cancellationToken = default)
         {
-            var root = this.Options.RootDirectory;
+            var objectsDir = this.Options.ObjectsDirectory;
             var hash = content.Hash;
             var objectDirectoryName = hash.Substring(0, ObjectDirLength);
-            var objectDirectory = Path.Combine(root, objectDirectoryName);
+            var objectDirectory = Path.Combine(objectsDir, objectDirectoryName);
             var filename = hash.Substring(ObjectDirLength);
             var path = Path.Combine(objectDirectory, filename);
 
@@ -70,9 +70,9 @@ namespace Git4e
                 return;
             }
 
-            if (!Directory.Exists(root))
+            if (!Directory.Exists(objectsDir))
             {
-                Directory.CreateDirectory(root);
+                Directory.CreateDirectory(objectsDir);
             }
 
             if (!Directory.Exists(objectDirectory))
@@ -86,17 +86,17 @@ namespace Git4e
 
         public async Task SaveObjectsAsync(IEnumerable<IHashableObject> contents, CancellationToken cancellationToken = default)
         {
-            var root = this.Options.RootDirectory;
-            if (!Directory.Exists(root))
+            var objectsDir = this.Options.ObjectsDirectory;
+            if (!Directory.Exists(objectsDir))
             {
-                Directory.CreateDirectory(root);
+                Directory.CreateDirectory(objectsDir);
             }
 
             foreach (var content in contents)
             {
                 var hash = content.Hash;
                 var objectDirectoryName = hash.Substring(0, ObjectDirLength);
-                var objectDirectory = Path.Combine(root, objectDirectoryName);
+                var objectDirectory = Path.Combine(objectsDir, objectDirectoryName);
                 var filename = hash.Substring(ObjectDirLength);
                 var path = Path.Combine(objectDirectory, filename);
 
@@ -123,8 +123,8 @@ namespace Git4e
         public async Task<string> GetObjectTypeAsync(string hash, CancellationToken cancellationToken = default)
         {
             var objectDirectoryName = hash.Substring(0, ObjectDirLength);
-            var root = this.Options.RootDirectory;
-            var objectDirectory = Path.Combine(root, objectDirectoryName);
+            var objectsDir = this.Options.ObjectsDirectory;
+            var objectDirectory = Path.Combine(objectsDir, objectDirectoryName);
             var filename = hash.Substring(ObjectDirLength);
             var path = Path.Combine(objectDirectory, filename);
             if (!File.Exists(path))
@@ -139,8 +139,8 @@ namespace Git4e
         public async Task<object> GetObjectContentAsync(string hash, Type contentType, CancellationToken cancellationToken = default)
         {
             var objectDirectoryName = hash.Substring(0, ObjectDirLength);
-            var root = this.Options.RootDirectory;
-            var objectDirectory = Path.Combine(root, objectDirectoryName);
+            var objectsDir = this.Options.ObjectsDirectory;
+            var objectDirectory = Path.Combine(objectsDir, objectDirectoryName);
             var filename = hash.Substring(ObjectDirLength);
             var path = Path.Combine(objectDirectory, filename);
             if (!File.Exists(path))
