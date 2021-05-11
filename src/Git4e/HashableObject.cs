@@ -11,18 +11,19 @@ namespace Git4e
     public abstract class HashableObject : IHashableObject
     {
         public string Type { get; private set; }
-        public IContentSerializer ContentSerializer { get; } = Globals.ContentSerializer;
-        public IHashCalculator HashCalculator { get; } = Globals.HashCalculator;
-        public IObjectStore ObjectStore { get; set; } = Globals.ObjectStore;
-        public IServiceProvider ServiceProvider { get; } = Globals.ServiceProvider;
-        public IObjectLoader ObjectLoader { get; set; } = Globals.ObjectLoader;
-        public IContentTypeResolver ContentTypeResolver { get; set; } = Globals.ContentTypeResolver;
+        public IRepository Repository {get; set; }
+        public IContentSerializer ContentSerializer { get => this.Repository.ContentSerializer; }
+        public IHashCalculator HashCalculator { get => this.Repository.HashCalculator; }
+        public IObjectStore ObjectStore { get => this.Repository.ObjectStore; }
+        public IServiceProvider ServiceProvider { get => this.Repository.ServiceProvider; }
+        public IContentTypeResolver ContentTypeResolver { get => this.Repository.ContentTypeResolver; }
 
         private string _Hash;
         private byte[] _Content;
 
-        public HashableObject(string type, string hash = null)
+        public HashableObject(IRepository repository, string type, string hash = null)
         {
+            this.Repository = repository;
             this.Type = type ?? throw new ArgumentNullException(nameof(type));
             _Hash = hash;
         }

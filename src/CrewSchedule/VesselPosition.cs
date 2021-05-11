@@ -30,12 +30,12 @@ namespace CrewSchedule
             [ProtoMember(5)]
             public string[] SeamanAssignmentFullHashes { get; set; }
 
-            public Task<IHashableObject> ToHashableObjectAsync(string hash, IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
+            public Task<IHashableObject> ToHashableObjectAsync(string hash, IRepository repository, CancellationToken cancellationToken = default)
             {
                 var seamanAssignments = this.SeamanAssignmentFullHashes
-                    .Select(asnHash => new LazySeamanAssignment(asnHash))
+                    .Select(asnHash => new LazySeamanAssignment(repository, asnHash))
                     .ToList();
-                var position = new VesselPosition(hash)
+                var position = new VesselPosition(repository, hash)
                 {
                     VesselPositionId = this.VesselPositionId,
                     VesselCode = this.VesselCode,
@@ -117,8 +117,8 @@ namespace CrewSchedule
             }
         }
 
-        public VesselPosition(string hash = null)
-            : base(VesselPositionContentType, hash)
+        public VesselPosition(IRepository repository, string hash = null)
+            : base(repository, VesselPositionContentType, hash)
         {
         }
 
@@ -157,8 +157,8 @@ namespace CrewSchedule
     /// </summary>
     public class LazyVesselPosition : LazyHashableObject<string, int>
     {
-        public LazyVesselPosition(string fullHash)
-            : base(fullHash, VesselPosition.VesselPositionContentType)
+        public LazyVesselPosition(IRepository repository, string fullHash)
+            : base(repository, fullHash, VesselPosition.VesselPositionContentType)
         {
         }
 

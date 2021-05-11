@@ -20,13 +20,13 @@ namespace CrewSchedule
             [ProtoMember(2)]
             public string[] VesselFullHashes { get; set; }
 
-            public Task<IHashableObject> ToHashableObjectAsync(string hash, IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
+            public Task<IHashableObject> ToHashableObjectAsync(string hash, IRepository repository, CancellationToken cancellationToken = default)
             {
                 var vessels =
                     this.VesselFullHashes
-                    .Select(vesselHash => new LazyVessel(vesselHash))
+                    .Select(vesselHash => new LazyVessel(repository, vesselHash))
                     .ToList();
-                var plan = new Plan(hash)
+                var plan = new Plan(repository, hash)
                 {
                     PlanVersionId = this.PlanVersionId,
                     Vessels = vessels
@@ -63,8 +63,8 @@ namespace CrewSchedule
             }
         }
 
-        public Plan(string hash = null)
-            : base(PlanContentType, hash)
+        public Plan(IRepository repository, string hash = null)
+            : base(repository, PlanContentType, hash)
         {
         }
 
@@ -98,8 +98,8 @@ namespace CrewSchedule
     /// </summary>
     public class LazyPlan : LazyHashableObject<string>
     {
-        public LazyPlan(string fullHash)
-            : base(fullHash, Plan.PlanContentType)
+        public LazyPlan(IRepository repository, string fullHash)
+            : base(repository, fullHash, Plan.PlanContentType)
         {
         }
 

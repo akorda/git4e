@@ -22,6 +22,7 @@ namespace CrewSchedule
             string connectionString,
             string planVersionId,
             IServiceProvider serviceProvider,
+            IRepository repository,
             CancellationToken cancellationToken = default)
         {
             using (var connection = new SqlConnection(connectionString))
@@ -154,7 +155,7 @@ namespace CrewSchedule
                 foreach (var vessel in Vessels)
                     vessel.Positions = vesselsMap[vessel.VesselCode].Select(vp => new LazyVesselPosition(vp)).ToList();
 
-                var plan = new Plan
+                var plan = new Plan(repository)
                 {
                     PlanVersionId = planVersionId,
                     Vessels = Vessels.Select(vessel => new LazyVessel(vessel)).ToList()

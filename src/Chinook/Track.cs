@@ -31,9 +31,9 @@ namespace Chinook
             [ProtoMember(8)]
             public string GenreFullHash { get; set; }
 
-            public Task<IHashableObject> ToHashableObjectAsync(string hash, IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
+            public Task<IHashableObject> ToHashableObjectAsync(string hash, IRepository repository, CancellationToken cancellationToken = default)
             {
-                var track = new Track(hash)
+                var track = new Track(repository, hash)
                 {
                     TrackId = this.TrackId,
                     Name = this.Name,
@@ -41,8 +41,8 @@ namespace Chinook
                     Milliseconds = this.Milliseconds,
                     Bytes = this.Bytes,
                     UnitPrice = this.UnitPrice,
-                    MediaType = new LazyHashableObject(this.MediaTypeFullHash, Chinook.MediaType.MediaTypeContentType),
-                    Genre = new LazyHashableObject(this.GenreFullHash, Chinook.Genre.GenreContentType)
+                    MediaType = new LazyHashableObject(repository, this.MediaTypeFullHash, Chinook.MediaType.MediaTypeContentType),
+                    Genre = new LazyHashableObject(repository, this.GenreFullHash, Chinook.Genre.GenreContentType)
                 };
                 return Task.FromResult(track as IHashableObject);
             }
@@ -150,8 +150,8 @@ namespace Chinook
         {
         }
 
-        public Track(string hash = null)
-            : base(TrackContentType, hash)
+        public Track(IRepository repository, string hash = null)
+            : base(repository, TrackContentType, hash)
         {
         }
 
@@ -192,8 +192,8 @@ namespace Chinook
     /// </summary>
     public class LazyTrack : LazyHashableObject<int, string, string>
     {
-        public LazyTrack(string fullHash)
-            : base(fullHash, Track.TrackContentType)
+        public LazyTrack(IRepository repository, string fullHash)
+            : base(repository, fullHash, Track.TrackContentType)
         {
         }
 

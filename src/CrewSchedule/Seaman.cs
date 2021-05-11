@@ -21,9 +21,9 @@ namespace CrewSchedule
             public string FirstName { get; set; }
             //Compatibilities, etc
 
-            public Task<IHashableObject> ToHashableObjectAsync(string hash, IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
+            public Task<IHashableObject> ToHashableObjectAsync(string hash, IRepository repository, CancellationToken cancellationToken = default)
             {
-                var seaman = new Seaman(hash)
+                var seaman = new Seaman(repository, hash)
                 {
                     SeamanCode = this.SeamanCode,
                     LastName = this.LastName,
@@ -77,8 +77,8 @@ namespace CrewSchedule
 
         //Compatibilities, etc
 
-        public Seaman(string hash = null)
-            : base(SeamanContentType, hash)
+        public Seaman(IRepository repository, string hash = null)
+            : base(repository, SeamanContentType, hash)
         {
         }
 

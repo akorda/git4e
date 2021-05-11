@@ -18,9 +18,9 @@ namespace Chinook
             [ProtoMember(2)]
             public string Name { get; set; }
 
-            public Task<IHashableObject> ToHashableObjectAsync(string hash, IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
+            public Task<IHashableObject> ToHashableObjectAsync(string hash, IRepository repository, CancellationToken cancellationToken = default)
             {
-                var mediaType = new MediaType(hash)
+                var mediaType = new MediaType(repository, hash)
                 {
                     MediaTypeId = this.MediaTypeId,
                     Name = this.Name
@@ -61,8 +61,8 @@ namespace Chinook
         {
         }
         
-        public MediaType(string hash = null)
-            : base(MediaTypeContentType, hash)
+        public MediaType(IRepository repository, string hash = null)
+            : base(repository, MediaTypeContentType, hash)
         {
         }
 

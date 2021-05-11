@@ -9,6 +9,7 @@ namespace Git4e
     {
         readonly Dictionary<string, IHashableObject> ObjectCache = new Dictionary<string, IHashableObject>();
 
+        public IRepository Repository { get; }
         public IServiceProvider ServiceProvider { get; }
         public IObjectStore ObjectStore { get; }
         public IContentSerializer ContentSerializer { get; }
@@ -16,12 +17,14 @@ namespace Git4e
         public IContentToObjectConverter ContentToObjectConverter { get; }
 
         public ObjectLoader(
+            IRepository repository,
             IServiceProvider serviceProvider,
             IObjectStore objectStore,
             IContentSerializer contentSerializer,
             IContentTypeResolver contentTypeResolver,
             IContentToObjectConverter contentToObjectConverter = null)
         {
+            this.Repository = repository ?? throw new ArgumentNullException(nameof(repository));
             this.ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.ObjectStore = objectStore ?? throw new ArgumentNullException(nameof(objectStore));
             this.ContentSerializer = contentSerializer ?? throw new ArgumentNullException(nameof(contentSerializer));
@@ -47,11 +50,11 @@ namespace Git4e
 
             if (objectContent is IContent content)
             {
-                obj = await content.ToHashableObjectAsync(hash, this.ServiceProvider, cancellationToken);
+                obj = await content.ToHashableObjectAsync(hash, this.Repository, cancellationToken);
             }
             else
             {
-                obj = this.ContentToObjectConverter?.ToObject(objectContent, this.ServiceProvider, this.ContentSerializer, this);
+                obj = this.ContentToObjectConverter?.ToObject(this.Repository, objectContent);
             }
 
             this.ObjectCache[hash] = obj;

@@ -30,13 +30,13 @@ namespace Git4e
 
         public override string FullHash { get => this.Hash; }
 
-        public LazyHashableObject(string hash, string type)
+        public LazyHashableObject(IRepository repository, string hash, string type)
             : base(async () =>
             {
-                var typeName = await Globals.ObjectStore.GetObjectTypeAsync(hash);
-                var type = Globals.ContentTypeResolver.ResolveContentType(typeName);
-                var objectContent = (await Globals.ObjectStore.GetObjectContentAsync(hash, type)) as IContent;
-                var hashableObject = await objectContent.ToHashableObjectAsync(hash, Globals.ServiceProvider);
+                var typeName = await repository.ObjectStore.GetObjectTypeAsync(hash);
+                var type = repository.ContentTypeResolver.ResolveContentType(typeName);
+                var objectContent = (await repository.ObjectStore.GetObjectContentAsync(hash, type)) as IContent;
+                var hashableObject = await objectContent.ToHashableObjectAsync(hash, repository);
                 return hashableObject;
             })
         {
@@ -74,8 +74,8 @@ namespace Git4e
     {
         public THashIncludeProperty1 HashIncludeProperty1 { get; set; }
 
-        public LazyHashableObject(string fullHash, string type)
-            : base(fullHash.Split('|').First(), type)
+        public LazyHashableObject(IRepository repository, string fullHash, string type)
+            : base(repository, fullHash.Split('|').First(), type)
         {
             var hashParts = fullHash.Split('|');
             this.HashIncludeProperty1 = (THashIncludeProperty1)Convert.ChangeType(System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(hashParts[1])), typeof(THashIncludeProperty1));
@@ -104,8 +104,8 @@ namespace Git4e
         public THashIncludeProperty1 HashIncludeProperty1 { get; set; }
         public THashIncludeProperty2 HashIncludeProperty2 { get; set; }
 
-        public LazyHashableObject(string fullHash, string type)
-            : base(fullHash.Split('|').First(), type)
+        public LazyHashableObject(IRepository repository, string fullHash, string type)
+            : base(repository, fullHash.Split('|').First(), type)
         {
             var hashParts = fullHash.Split('|');
             this.HashIncludeProperty1 = (THashIncludeProperty1)Convert.ChangeType(System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(hashParts[1])), typeof(THashIncludeProperty1));
@@ -145,8 +145,8 @@ namespace Git4e
         public THashIncludeProperty2 HashIncludeProperty2 { get; set; }
         public THashIncludeProperty3 HashIncludeProperty3 { get; set; }
 
-        public LazyHashableObject(string fullHash, string type)
-            : base(fullHash.Split('|').First(), type)
+        public LazyHashableObject(IRepository repository, string fullHash, string type)
+            : base(repository, fullHash.Split('|').First(), type)
         {
             var hashParts = fullHash.Split('|');
             this.HashIncludeProperty1 = (THashIncludeProperty1)Convert.ChangeType(System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(hashParts[1])), typeof(THashIncludeProperty1));

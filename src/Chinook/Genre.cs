@@ -18,9 +18,9 @@ namespace Chinook
             [ProtoMember(2)]
             public string Name { get; set; }
 
-            public Task<IHashableObject> ToHashableObjectAsync(string hash, IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
+            public Task<IHashableObject> ToHashableObjectAsync(string hash, IRepository repository, CancellationToken cancellationToken = default)
             {
-                var genre = new Genre(hash)
+                var genre = new Genre(repository, hash)
                 {
                     GenreId = this.GenreId,
                     Name = this.Name
@@ -61,8 +61,8 @@ namespace Chinook
         {
         }
 
-        public Genre(string hash = null)
-            : base(GenreContentType, hash)
+        public Genre(IRepository repository, string hash = null)
+            : base(repository, GenreContentType, hash)
         {
         }
 

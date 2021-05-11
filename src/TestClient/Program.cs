@@ -26,25 +26,6 @@ namespace TestClient
             var hashCalculator = serviceProvider.GetService<IHashCalculator>();
             var contentSerializer = serviceProvider.GetService<IContentSerializer>();
 
-            Globals.ServiceProvider = serviceProvider;
-            Globals.HashCalculator = hashCalculator;
-            Globals.ContentSerializer = contentSerializer;
-            Globals.ObjectStore = objectStore;
-            Globals.ObjectLoader = objectLoader;
-            Globals.ContentTypeResolver = contentTypeResolver;
-
-            //crew schedule
-            //Globals.RootFromHashCreator = new Func<string, string, LazyHashableObject>((rootHash, rootContentType) =>
-            //{
-            //    if (rootHash.IndexOf("|") != -1)
-            //        return new LazyPlan(rootHash);
-            //    else
-            //        return new LazyHashableObject(rootHash, rootContentType);
-            //});
-
-            //chinook
-            Globals.RootFromHashCreator = new Func<string, string, LazyHashableObject>((rootHash, rootContentType) => new LazyLibrary(rootHash));
-
             //var hash = await objectStore.ReadHeadAsync(cancellationToken);
             //string parentCommitHash;
             //if (hash != null)
@@ -70,19 +51,19 @@ namespace TestClient
             var contentType = contentTypeResolver.ResolveContentType(contentTypeName);
             var objectContent = await objectStore.GetObjectContentAsync(commitHash, contentType, cancellationToken);
             var commitContent = objectContent as Commit.CommitContent;
-            var loadedCommit = (await commitContent.ToHashableObjectAsync(commitHash, serviceProvider, cancellationToken)) as Commit;
+            var loadedCommit = (await commitContent.ToHashableObjectAsync(commitHash, repository, cancellationToken)) as Commit;
             var parentCommitHash = loadedCommit.ParentCommitHashes?.FirstOrDefault();
             if (parentCommitHash != null)
             {
                 objectContent = await objectStore.GetObjectContentAsync(parentCommitHash, contentType, cancellationToken);
                 commitContent = objectContent as Commit.CommitContent;
-                var parentCommit = (await commitContent.ToHashableObjectAsync(commitHash, serviceProvider, cancellationToken)) as Commit;
+                var parentCommit = (await commitContent.ToHashableObjectAsync(commitHash, repository, cancellationToken)) as Commit;
                 parentCommitHash = parentCommit.ParentCommitHashes?.FirstOrDefault();
                 if (parentCommitHash != null)
                 {
                     objectContent = await objectStore.GetObjectContentAsync(parentCommitHash, contentType, cancellationToken);
                     commitContent = objectContent as Commit.CommitContent;
-                    parentCommit = (await commitContent.ToHashableObjectAsync(commitHash, serviceProvider, cancellationToken)) as Commit;
+                    parentCommit = (await commitContent.ToHashableObjectAsync(commitHash, repository, cancellationToken)) as Commit;
                 }
             }
         }
@@ -100,7 +81,7 @@ namespace TestClient
             var connectionString = configuration.GetConnectionString("Chinook");
 
             var data = new Chinook.DataLoader();
-            await data.LoadDataAsync(connectionString, cancellationToken);
+            await data.LoadDataAsync(connectionString, repository, cancellationToken);
 
             var headHash = await objectStore.ReadHeadAsync(cancellationToken);
             if (headHash != null)
@@ -127,7 +108,7 @@ namespace TestClient
             var planVersionId = "1";
 
             var data = new CrewSchedule.DataLoader();
-            await data.LoadDataAsync(connectionString, planVersionId, serviceProvider, cancellationToken);
+            await data.LoadDataAsync(connectionString, planVersionId, serviceProvider, repository, cancellationToken);
 
             var commitHash = await repository.CommitAsync("akorda", DateTime.Now, "Fix CAPs on Athina", data.Plan, cancellationToken);
             return commitHash;
@@ -195,6 +176,8 @@ namespace TestClient
                 })
                 .AddSingleton<IObjectStore, PhysicalFilesObjectStore>()
                 .AddSingleton<IObjectLoader, ObjectLoader>()
+                .AddSingleton<IRootFromHashCreator, ChinookRootFromHashCreator>()
+                //.AddSingleton<IRootFromHashCreator, CrewScheduleRootFromHashCreator>()
                 .AddSingleton<IRepository, Repository>()
                 .BuildServiceProvider();
         }

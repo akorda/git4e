@@ -27,16 +27,16 @@ namespace CrewSchedule
             [ProtoMember(6)]
             public string SeamanFullHash { get; set; }
 
-            public Task<IHashableObject> ToHashableObjectAsync(string hash, IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
+            public Task<IHashableObject> ToHashableObjectAsync(string hash, IRepository repository, CancellationToken cancellationToken = default)
             {
-                var assignment = new SeamanAssignment(hash)
+                var assignment = new SeamanAssignment(repository, hash)
                 {
                     SeamanAssignmentId = this.SeamanAssignmentId,
                     StartOverlap = this.StartOverlap,
                     StartDuties = this.StartDuties,
                     EndDuties = this.EndDuties,
                     EndOverlap = this.EndOverlap,
-                    Seaman = new LazyHashableObject(this.SeamanFullHash, CrewSchedule.Seaman.SeamanContentType)
+                    Seaman = new LazyHashableObject(repository, this.SeamanFullHash, CrewSchedule.Seaman.SeamanContentType)
                 };
                 return Task.FromResult(assignment as IHashableObject);
             }
@@ -122,8 +122,8 @@ namespace CrewSchedule
         internal string DutyRankCode { get; set; }
         internal int PositionNo { get; set; }
 
-        public SeamanAssignment(string hash = null)
-            : base(SeamanAssignmentContentType, hash)
+        public SeamanAssignment(IRepository repository, string hash = null)
+            : base(repository, SeamanAssignmentContentType, hash)
         {
         }
 
@@ -157,8 +157,8 @@ namespace CrewSchedule
     /// </summary>
     public class LazySeamanAssignment : LazyHashableObject<string, string>
     {
-        public LazySeamanAssignment(string fullHash)
-            : base(fullHash, SeamanAssignment.SeamanAssignmentContentType)
+        public LazySeamanAssignment(IRepository repository, string fullHash)
+            : base(repository, fullHash, SeamanAssignment.SeamanAssignmentContentType)
         {
         }
 

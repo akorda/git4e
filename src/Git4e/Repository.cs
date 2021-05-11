@@ -7,18 +7,26 @@ namespace Git4e
     public class Repository : IRepository
     {
         public IServiceProvider ServiceProvider { get; }
+        public IContentSerializer ContentSerializer { get; }
+        public IHashCalculator HashCalculator { get; }
         public IObjectStore ObjectStore { get; }
         public IContentTypeResolver ContentTypeResolver { get; }
+        public IRootFromHashCreator RootFromHashCreator { get; }
 
         public Repository(
             IServiceProvider serviceProvider,
+            IContentSerializer contentSerializer,
+            IHashCalculator hashCalculator,
             IObjectStore objectStore,
-            IContentTypeResolver contentTypeResolver
-            )
+            IContentTypeResolver contentTypeResolver,
+            IRootFromHashCreator rootFromHashCreator)
         {
             this.ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            this.ContentSerializer = contentSerializer ?? throw new ArgumentNullException(nameof(contentSerializer));
+            this.HashCalculator = hashCalculator ?? throw new ArgumentNullException(nameof(hashCalculator));
             this.ObjectStore = objectStore ?? throw new ArgumentNullException(nameof(objectStore));
             this.ContentTypeResolver = contentTypeResolver ?? throw new ArgumentNullException(nameof(contentTypeResolver));
+            this.RootFromHashCreator = rootFromHashCreator ?? throw new ArgumentNullException(nameof(rootFromHashCreator));
         }
 
         public string HeadCommitHash { get; private set; }
@@ -34,7 +42,7 @@ namespace Git4e
             var contentType = this.ContentTypeResolver.ResolveContentType(contentTypeName);
             var objectContent = await this.ObjectStore.GetObjectContentAsync(commitHash, contentType, cancellationToken);
             var commitContent = objectContent as IContent;
-            var commit = (await commitContent.ToHashableObjectAsync(commitHash, this.ServiceProvider, cancellationToken)) as ICommit;
+            var commit = (await commitContent.ToHashableObjectAsync(commitHash, this, cancellationToken)) as ICommit;
             if (commit != null)
             {
                 this.HeadCommitHash = commitHash;
@@ -44,7 +52,7 @@ namespace Git4e
 
         public async Task<string> CommitAsync(string author, DateTime when, string message, LazyHashableObjectBase root, CancellationToken cancellationToken = default)
         {
-            var commit = new Commit
+            var commit = new Commit(this)
             {
                 Author = author,
                 When = when,

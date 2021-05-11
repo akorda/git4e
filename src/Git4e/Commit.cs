@@ -26,15 +26,15 @@ namespace Git4e
             [ProtoMember(6)]
             public string[] ParentCommitHashes { get; set; }
 
-            public Task<IHashableObject> ToHashableObjectAsync(string hash, IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
+            public Task<IHashableObject> ToHashableObjectAsync(string hash, IRepository repository, CancellationToken cancellationToken = default)
             {
-                Func<string, string, LazyHashableObjectBase> rootCreator = Globals.RootFromHashCreator ?? new Func<string, string, LazyHashableObjectBase>((rh, rct) => new LazyHashableObject(rh, rct));
-                var commit = new Commit(hash)
+                IRootFromHashCreator rootCreator = repository.RootFromHashCreator ?? new RootFromHashCreator();
+                var commit = new Commit(repository, hash)
                 {
                     Author = this.Author,
                     When = this.When,
                     Message = this.Message,
-                    Root = rootCreator(this.RootFullHash, this.RootContentType),
+                    Root = rootCreator.CreateRootFromHash(repository, this.RootFullHash, this.RootContentType),
                     ParentCommitHashes = this.ParentCommitHashes
                 };
                 return Task.FromResult(commit as IHashableObject);
@@ -47,8 +47,8 @@ namespace Git4e
         public LazyHashableObjectBase Root { get; set; }
         public string[] ParentCommitHashes { get; set; }
 
-        public Commit(string hash = null)
-            : base(ContentTypeName, hash)
+        public Commit(IRepository repository, string hash = null)
+            : base(repository, ContentTypeName, hash)
         {
         }
 

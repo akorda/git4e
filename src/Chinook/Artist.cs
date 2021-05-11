@@ -22,13 +22,13 @@ namespace Chinook
             [ProtoMember(3)]
             public string[] AlbumFullHashes { get; set; }
 
-            public Task<IHashableObject> ToHashableObjectAsync(string hash, IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
+            public Task<IHashableObject> ToHashableObjectAsync(string hash, IRepository repository, CancellationToken cancellationToken = default)
             {
                 var albums =
                     this.AlbumFullHashes
-                    .Select(posHash => new LazyAlbum(posHash))
+                    .Select(posHash => new LazyAlbum(repository, posHash))
                     .ToList();
-                var artist = new Artist(hash)
+                var artist = new Artist(repository, hash)
                 {
                     ArtistId = this.ArtistId,
                     Name = this.Name,
@@ -85,8 +85,8 @@ namespace Chinook
         {
         }
 
-        public Artist(string hash = null)
-            : base(ArtistContentType, hash)
+        public Artist(IRepository repository, string hash = null)
+            : base(repository, ArtistContentType, hash)
         {
         }
 
@@ -122,8 +122,8 @@ namespace Chinook
     /// </summary>
     public class LazyArtist : LazyHashableObject<int, string>
     {
-        public LazyArtist(string fullHash)
-            : base(fullHash, Artist.ArtistContentType)
+        public LazyArtist(IRepository repository, string fullHash)
+            : base(repository, fullHash, Artist.ArtistContentType)
         {
         }
 
