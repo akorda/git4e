@@ -14,5 +14,7 @@ namespace Git4e
         Task SaveTreeAsync(IHashableObject content, CancellationToken cancellationToken = default);
         Task SaveHeadAsync(string commitHash, CancellationToken cancellationToken = default);
         Task<string> ReadHeadAsync(CancellationToken cancellationToken = default);
+        Task InitializeObjectStoreAsync(CancellationToken cancellationToken = default);
+        Task CreateReferenceAsync(string referencePath, string commitHash, bool forceOverwrite, CancellationToken cancellationToken = default);
     }
 }
