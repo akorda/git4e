@@ -241,12 +241,16 @@ namespace Git4e
                 var fullReferencePath = Path.Combine(this.Options.RootDirectory, osReferencePath);
                 if (!File.Exists(fullReferencePath))
                 {
-                    throw new Exception($"Missing reference '{referencePath}'");
-                }
-
-                commitHash = await File.ReadAllTextAsync(fullReferencePath, cancellationToken);
-                if (commitHash == string.Empty)
                     commitHash = null;
+                }
+                else
+                {
+                    commitHash = await File.ReadAllTextAsync(fullReferencePath, cancellationToken);
+                    if (commitHash == string.Empty)
+                    {
+                        commitHash = null;
+                    }
+                }
             }
             else
             {
