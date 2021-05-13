@@ -13,7 +13,8 @@ namespace Git4e
         IContentTypeResolver ContentTypeResolver { get; }
         IRootFromHashCreator RootFromHashCreator { get; }
         string HeadCommitHash { get; }
-        Task<ICommit> CheckoutAsync(string commitHash, CancellationToken cancellationToken = default);
+        Task<ICommit> CheckoutAsync(string branch, CancellationToken cancellationToken = default);
         Task<string> CommitAsync(string author, DateTime when, string message, LazyHashableObjectBase root, CancellationToken cancellationToken = default);
+        Task CreateBranchAsync(string branch, bool checkout, CancellationToken cancellationToken = default);
     }
 }

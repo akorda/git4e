@@ -42,7 +42,8 @@ namespace TestClient
 
             //string parentCommitHash = null;
 
-            var commitHash = await UseCase0(configuration, objectStore, repository, cancellationToken);
+            //var commitHash = await UseCase0(configuration, objectStore, repository, cancellationToken);
+            var commitHash = await CreateNewBranch(configuration, objectStore, repository, cancellationToken);
             //var commitHash = await UseCase1(configuration, serviceProvider, repository, cancellationToken);
             //var commitHash = await UseCase2(configuration, serviceProvider, objectStore, repository, cancellationToken);
 
@@ -83,11 +84,27 @@ namespace TestClient
             var data = new Chinook.DataLoader();
             await data.LoadDataAsync(connectionString, repository, cancellationToken);
 
-            var headHash = await objectStore.ReadHeadAsync(cancellationToken);
-            if (headHash != null)
-                await repository.CheckoutAsync(headHash, cancellationToken);
+            var branch = "main";
+            await repository.CheckoutAsync(branch, cancellationToken);    
 
             var commitHash = await repository.CommitAsync("akorda", DateTime.Now, "Fix albums", data.Library, cancellationToken);
+            return commitHash;
+        }
+
+        private static async Task<string> CreateNewBranch(IConfiguration configuration, IObjectStore objectStore, IRepository repository, CancellationToken cancellationToken = default)
+        {
+            var newBranch = "work/test1";
+            if (!await objectStore.BranchExistsAsync(newBranch, cancellationToken))
+            {
+                await repository.CreateBranchAsync(newBranch, true, cancellationToken);
+            }
+
+            var connectionString = configuration.GetConnectionString("Chinook");
+
+            var data = new Chinook.DataLoader();
+            await data.LoadDataAsync(connectionString, repository, cancellationToken);
+
+            var commitHash = await repository.CommitAsync("akorda", DateTime.Now, "Fix smth in new branch", data.Library, cancellationToken);
             return commitHash;
         }
 
@@ -119,8 +136,9 @@ namespace TestClient
             var hash = await objectStore.ReadHeadAsync(cancellationToken);
             if (hash == null) return null;
 
+            var branch = "main";
             //load ZV and change a vessel property
-            var commit = await repository.CheckoutAsync(hash, cancellationToken);
+            var commit = await repository.CheckoutAsync(branch, cancellationToken);
             var root = commit.Root as LazyHashableObject<string>;
             if (root.HashIncludeProperty1 != "1")
                 return null;

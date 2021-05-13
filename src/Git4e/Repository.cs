@@ -31,8 +31,10 @@ namespace Git4e
 
         public string HeadCommitHash { get; private set; }
 
-        public async Task<ICommit> CheckoutAsync(string commitHash, CancellationToken cancellationToken = default)
+        public async Task<ICommit> CheckoutAsync(string branch, CancellationToken cancellationToken = default)
         {
+            var commitHash = await this.ObjectStore.CheckoutBranchAsync(branch, cancellationToken);
+
             var contentTypeName = await this.ObjectStore.GetObjectTypeAsync(commitHash, cancellationToken);
             if (contentTypeName != Commit.ContentTypeName)
             {
@@ -70,6 +72,15 @@ namespace Git4e
 
             this.HeadCommitHash = commit.Hash;
             return commit.Hash;
+        }
+
+        public async Task CreateBranchAsync(string branch, bool checkout, CancellationToken cancellationToken = default)
+        {
+            await this.ObjectStore.CreateBranchAsync(branch, cancellationToken);
+            if (checkout)
+            {
+                this.HeadCommitHash = await this.ObjectStore.CheckoutBranchAsync(branch, cancellationToken);
+            }
         }
     }
 }
