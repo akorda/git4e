@@ -69,17 +69,12 @@ namespace Git4e
                 Directory.CreateDirectory(this.Options.ObjectsDirectory);
             }
 
-            //save initial branch ref
-            string commitHash = null;
-            //todo: change to method
-            var relativeReferencePath = $"refs/heads/{this.Options.InitialBranchName}";
-            var forceOverwrite = false;
-            await this.CreateReferenceAsync(relativeReferencePath, commitHash, forceOverwrite, cancellationToken);
-
             //set head to point to the initial branch
             var headPath = Path.Combine(this.Options.RootDirectory, HeadFilename);
             if (!File.Exists(headPath))
             {
+                //set HEAD ref to InitialBranch even if this reference does not exist
+                var relativeReferencePath = $"refs/heads/{this.Options.InitialBranchName}";
                 var headContents = $"ref: {relativeReferencePath}";
                 await File.WriteAllTextAsync(headPath, headContents);
             }
@@ -89,7 +84,7 @@ namespace Git4e
         {
             if (Path.DirectorySeparatorChar == '/') return path;
             return path.Replace('/', Path.DirectorySeparatorChar);
-        } 
+        }
 
         public async Task<bool> CreateReferenceAsync(string relativeReferencePath, string commitHash, bool forceOverwrite, CancellationToken cancellationToken = default)
         {
@@ -101,7 +96,7 @@ namespace Git4e
                 //todo: log me
                 return false;
             }
-            
+
             var fullReferenceDir = Path.GetDirectoryName(fullReferencePath);
             if (!Directory.Exists(fullReferenceDir))
             {
@@ -235,9 +230,10 @@ namespace Git4e
                 return null;
 
             await this.InitializeObjectStoreAsync(cancellationToken);
-            
-            string commitHash = null;
+
             var headContents = await File.ReadAllTextAsync(headPath, cancellationToken);
+
+            string commitHash;
             if (headContents.StartsWith("ref: "))
             {
                 var referencePath = headContents.Substring("ref: ".Length);
@@ -249,7 +245,8 @@ namespace Git4e
                 }
 
                 commitHash = await File.ReadAllTextAsync(fullReferencePath, cancellationToken);
-                if (commitHash == string.Empty) commitHash = null;
+                if (commitHash == string.Empty)
+                    commitHash = null;
             }
             else
             {
@@ -260,6 +257,8 @@ namespace Git4e
 
         public async Task CreateBranchAsync(string branch, CancellationToken cancellationToken = default)
         {
+            await this.InitializeObjectStoreAsync(cancellationToken);
+
             var branchExists = await this.BranchExistsAsync(branch, cancellationToken);
             if (branchExists)
             {
@@ -270,8 +269,11 @@ namespace Git4e
             var commitHash = await this.ReadHeadAsync(cancellationToken);
             if (commitHash == null)
             {
-                //todo: is this correct? check git behavior
-                throw new Exception("Cannot create the new branch. There is no initial commit");
+                //since there is no initial commit we don't need to
+                //create the reference file
+
+                //todo: log me
+                return;
             }
 
             //todo: change to method
@@ -292,19 +294,22 @@ namespace Git4e
 
         public async Task<string> CheckoutBranchAsync(string branch, CancellationToken cancellationToken = default)
         {
-            var branchExists = await this.BranchExistsAsync(branch, cancellationToken);
-            if (!branchExists)
-            {
-                //todo: is this correct? check git message
-                throw new Exception($"Branch '{branch}' does not exist");
-            }
+            await this.InitializeObjectStoreAsync(cancellationToken);
 
             //set head to point to this branch
             var relativeReferencePath = $"refs/heads/{branch}";
             var osRelativeReferencePath = ToOSPath(relativeReferencePath);
             var fullReferencePath = Path.Combine(this.Options.RootDirectory, osRelativeReferencePath);
-            var commitHash = await File.ReadAllTextAsync(fullReferencePath, cancellationToken);
-            
+            string commitHash = null;
+            if (File.Exists(fullReferencePath))
+            {
+                commitHash = await File.ReadAllTextAsync(fullReferencePath, cancellationToken);
+                if (commitHash == string.Empty)
+                {
+                    commitHash = null;
+                }
+            }
+
             var headPath = Path.Combine(this.Options.RootDirectory, HeadFilename);
             var headContents = $"ref: {relativeReferencePath}";
             await File.WriteAllTextAsync(headPath, headContents);
