@@ -23,5 +23,5 @@ jobs:
       run: dotnet restore src/git4e.sln
     - name: Build
       run: dotnet build --no-restore src/git4e.sln
-#    - name: Test
-#      run: dotnet test --no-build --verbosity normal
+    - name: Test
+      run: dotnet test --no-build --verbosity normal src/git4e.sln
