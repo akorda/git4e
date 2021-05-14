@@ -55,7 +55,7 @@ namespace Git4e
                 await this.SaveTreeAsync(child, cancellationToken);
         }
 
-        public async Task InitializeObjectStoreAsync(CancellationToken cancellationToken = default)
+        public async Task InitializeAsync(CancellationToken cancellationToken = default)
         {
             if (!Directory.Exists(this.Options.RootDirectory))
             {
@@ -125,7 +125,7 @@ namespace Git4e
                 return;
             }
 
-            await this.InitializeObjectStoreAsync(cancellationToken);
+            await this.InitializeAsync(cancellationToken);
 
             if (!Directory.Exists(objectDirectory))
             {
@@ -139,7 +139,7 @@ namespace Git4e
         public async Task SaveObjectsAsync(IEnumerable<IHashableObject> contents, CancellationToken cancellationToken = default)
         {
             var objectsDir = this.Options.ObjectsDirectory;
-            await this.InitializeObjectStoreAsync(cancellationToken);
+            await this.InitializeAsync(cancellationToken);
 
             foreach (var content in contents)
             {
@@ -205,7 +205,7 @@ namespace Git4e
 
         public async Task SaveHeadAsync(string commitHash, CancellationToken cancellationToken = default)
         {
-            await this.InitializeObjectStoreAsync(cancellationToken);
+            await this.InitializeAsync(cancellationToken);
 
             var headPath = Path.Combine(this.Options.RootDirectory, HeadFilename);
             var headContents = await File.ReadAllTextAsync(headPath, cancellationToken);
@@ -214,6 +214,13 @@ namespace Git4e
                 var referencePath = headContents.Substring("ref: ".Length);
                 var osReferencePath = ToOSPath(referencePath);
                 var fullReferencePath = Path.Combine(this.Options.RootDirectory, osReferencePath);
+                //ensure that the ref directory is created
+                var fullReferenceDir = Path.GetDirectoryName(fullReferencePath);
+                if (!Directory.Exists(fullReferenceDir))
+                {
+                    Directory.CreateDirectory(fullReferenceDir);
+                }
+
                 await File.WriteAllTextAsync(fullReferencePath, commitHash, cancellationToken);
             }
             else
@@ -229,7 +236,7 @@ namespace Git4e
             if (!File.Exists(headPath))
                 return null;
 
-            await this.InitializeObjectStoreAsync(cancellationToken);
+            await this.InitializeAsync(cancellationToken);
 
             var headContents = await File.ReadAllTextAsync(headPath, cancellationToken);
 
@@ -261,13 +268,12 @@ namespace Git4e
 
         public async Task CreateBranchAsync(string branch, CancellationToken cancellationToken = default)
         {
-            await this.InitializeObjectStoreAsync(cancellationToken);
+            await this.InitializeAsync(cancellationToken);
 
             var branchExists = await this.BranchExistsAsync(branch, cancellationToken);
             if (branchExists)
             {
-                //todo: is this correct? check git message
-                throw new Exception($"Branch '{branch}' already exists");
+                throw new Git4eException($"A branch named '{branch}' already exists.");
             }
 
             var commitHash = await this.ReadHeadAsync(cancellationToken);
@@ -298,7 +304,7 @@ namespace Git4e
 
         public async Task<string> CheckoutBranchAsync(string branch, CancellationToken cancellationToken = default)
         {
-            await this.InitializeObjectStoreAsync(cancellationToken);
+            await this.InitializeAsync(cancellationToken);
 
             //set head to point to this branch
             var relativeReferencePath = $"refs/heads/{branch}";

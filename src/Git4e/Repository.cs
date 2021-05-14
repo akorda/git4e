@@ -82,5 +82,10 @@ namespace Git4e
                 this.HeadCommitHash = await this.ObjectStore.CheckoutBranchAsync(branch, cancellationToken);
             }
         }
+
+        public async Task InitializeAsync(CancellationToken cancellationToken = default)
+        {
+            await this.ObjectStore.InitializeAsync(cancellationToken);
+        }
     }
 }

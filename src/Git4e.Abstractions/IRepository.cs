@@ -16,5 +16,6 @@ namespace Git4e
         Task<ICommit> CheckoutAsync(string branch, CancellationToken cancellationToken = default);
         Task<string> CommitAsync(string author, DateTime when, string message, LazyHashableObjectBase root, CancellationToken cancellationToken = default);
         Task CreateBranchAsync(string branch, bool checkout, CancellationToken cancellationToken = default);
+        Task InitializeAsync(CancellationToken cancellationToken = default);
     }
 }
