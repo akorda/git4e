@@ -177,7 +177,9 @@ namespace Git4e
             var filename = hash.Substring(ObjectDirLength);
             var path = Path.Combine(objectDirectory, filename);
             if (!File.Exists(path))
-                throw new Exception("");//todo: object not found exception
+            {
+                throw new Git4eException(Git4eErrorCode.NotFound, $"Object with hash '{hash}' not found");
+            }
 
             string type;
             using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read))
@@ -193,7 +195,9 @@ namespace Git4e
             var filename = hash.Substring(ObjectDirLength);
             var path = Path.Combine(objectDirectory, filename);
             if (!File.Exists(path))
-                throw new Exception("");//todo: object not found exception
+            {
+                throw new Git4eException(Git4eErrorCode.NotFound, $"Object with hash '{hash}' not found");
+            }
 
             object content;
             using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read))
@@ -273,14 +277,13 @@ namespace Git4e
             var branchExists = await this.BranchExistsAsync(branch, cancellationToken);
             if (branchExists)
             {
-                throw new Git4eException($"A branch named '{branch}' already exists.");
+                throw new Git4eException(Git4eErrorCode.Exists, $"A branch named '{branch}' already exists.");
             }
 
             var commitHash = await this.ReadHeadAsync(cancellationToken);
             if (commitHash == null)
             {
-                //since there is no initial commit we don't need to
-                //create the reference file
+                //since there is no initial commit we don't need to create the reference file
 
                 //todo: log me
                 return;

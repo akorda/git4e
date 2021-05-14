@@ -55,7 +55,7 @@ namespace Git4e.Tests
                     await repository.CreateBranchAsync(branch, true, cancellationToken);
                 }
             });
-            Assert.Equal($"A branch named '{branch}' already exists.", ex.Message);
+            Assert.Equal(Git4eErrorCode.Exists, ex.ErrorCode);
         }
     }
 }

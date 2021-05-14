@@ -38,7 +38,7 @@ namespace Git4e
             var contentTypeName = await this.ObjectStore.GetObjectTypeAsync(commitHash, cancellationToken);
             if (contentTypeName != Commit.ContentTypeName)
             {
-                throw new Exception("Object with hash ... is not a commit");
+                throw new Git4eException(Git4eErrorCode.InvalidContentType, $"Object with hash '{commitHash}' is not a commit");
             }
 
             var contentType = this.ContentTypeResolver.ResolveContentType(contentTypeName);
