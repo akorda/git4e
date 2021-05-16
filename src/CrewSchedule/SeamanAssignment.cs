@@ -148,6 +148,8 @@ namespace CrewSchedule
                 yield return await Task.FromResult(this.Seaman);
             }
         }
+
+        public override string UniqueId => this.SeamanAssignmentId;
     }
 
     /// <summary>
@@ -155,7 +157,7 @@ namespace CrewSchedule
     /// 1. SeamanAssignmentId
     /// 2. Seaman->SeamanCode
     /// </summary>
-    public class LazySeamanAssignment : LazyHashableObject<string, string>
+    public class LazySeamanAssignment : LazyHashableObject
     {
         public LazySeamanAssignment(IRepository repository, string fullHash)
             : base(repository, fullHash, SeamanAssignment.SeamanAssignmentContentType)
@@ -163,8 +165,12 @@ namespace CrewSchedule
         }
 
         public LazySeamanAssignment(SeamanAssignment asn)
-            : base(asn, a => (a as SeamanAssignment).SeamanAssignmentId, a => (a as SeamanAssignment).Seaman?.GetValue<Seaman>().SeamanCode)
+            : base(asn, asn.Seaman?.GetValue<Seaman>().SeamanCode)
         {
         }
+
+        public string SeamanAssignmentId => this.UniqueId;
+
+        public string SeamanCode => this.IncludedProperties[0];
     }
 }

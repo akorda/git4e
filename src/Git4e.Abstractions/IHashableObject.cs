@@ -9,9 +9,10 @@ namespace Git4e
     {
         string Type { get; }
         string Hash { get; }
+        string UniqueId { get; }
 
         /// <summary>
-        /// Hash encoded with any included properties
+        /// Hash with the Unique Id and any included properties
         /// </summary>
         string FullHash { get; }
 

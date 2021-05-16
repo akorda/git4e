@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using Git4e;
 using ProtoBuf;
@@ -75,5 +74,7 @@ namespace Chinook
             };
             return content;
         }
+
+        public override string UniqueId => this.GenreId.ToString();
     }
 }

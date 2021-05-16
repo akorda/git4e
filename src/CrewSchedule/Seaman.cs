@@ -92,5 +92,7 @@ namespace CrewSchedule
             };
             return content;
         }
+
+        public override string UniqueId => this.SeamanCode;
     }
 }

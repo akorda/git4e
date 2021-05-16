@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -28,11 +29,33 @@ namespace Git4e
 
         public override string Type { get; protected set; }
 
-        public override string FullHash { get => this.Hash; }
+        public override string UniqueId { get; protected set; }
 
-        public LazyHashableObject(IRepository repository, string hash, string type)
+        protected string[] IncludedProperties { get; set; }
+
+        public override string FullHash
+        {
+            get
+            {
+                var uniqueIdBase64 = ToBase64String(this.UniqueId);
+
+                string includedProperties = "";
+                if (this.IncludedProperties != null && this.IncludedProperties.Any())
+                {
+                    includedProperties = $"|{string.Join('|', this.IncludedProperties.Select(ip => ToBase64String(ip)))}";
+                }
+
+                var fullHash = $"{this.Hash}|{uniqueIdBase64}{includedProperties}";
+                return fullHash;
+            }
+        }
+
+        public LazyHashableObject(IRepository repository, string fullHash, string type)
             : base(async () =>
             {
+                var fullHashParts = fullHash.Split('|');
+                var hash = fullHashParts.First();
+
                 var typeName = await repository.ObjectStore.GetObjectTypeAsync(hash);
                 var type = repository.ContentTypeResolver.ResolveContentType(typeName);
                 var objectContent = (await repository.ObjectStore.GetObjectContentAsync(hash, type)) as IContent;
@@ -40,15 +63,54 @@ namespace Git4e
                 return hashableObject;
             })
         {
-            this.Hash = hash;
+            var fullHashParts = fullHash.Split('|');
+            this.Hash = fullHashParts.First();
+
+            var base64s = fullHashParts.Skip(1).Select(base64 => FromBase64String(base64)).ToArray();
+            if (base64s.Length > 0)
+            {
+                this.UniqueId = base64s[0];
+
+                if (base64s.Length > 1)
+                {
+                    this.IncludedProperties = base64s.Skip(1).ToArray();
+                }
+            }
+
             this.Type = type;
         }
 
-        public LazyHashableObject(IHashableObject hashableObject)
+        public LazyHashableObject(IHashableObject hashableObject, params string[] includedProperties)
             : base(() => hashableObject)
         {
             this.Hash = hashableObject.Hash;
+            this.UniqueId = hashableObject.UniqueId;
             this.Type = hashableObject.Type;
+            this.IncludedProperties = includedProperties;
+        }
+
+        private static string ToBase64String(string value)
+        {
+            if (value == null)
+                return "NULL";
+
+            if (value == string.Empty)
+                return "";
+
+            var base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
+            return base64;
+        }
+
+        private static string FromBase64String(string base64)
+        {
+            if (base64 == string.Empty)
+                return "";
+
+            if (base64 == "NULL")
+                return null;
+
+            var value = Encoding.UTF8.GetString(Convert.FromBase64String(base64));
+            return value;
         }
 
         public override async Task SerializeContentAsync(Stream stream, CancellationToken cancellationToken = default)
@@ -67,122 +129,6 @@ namespace Git4e
         public override void MarkAsDirty()
         {
             this.Hash = null;
-        }
-    }
-
-    public class LazyHashableObject<THashIncludeProperty1> : LazyHashableObject
-    {
-        public THashIncludeProperty1 HashIncludeProperty1 { get; set; }
-
-        public LazyHashableObject(IRepository repository, string fullHash, string type)
-            : base(repository, fullHash.Split('|').First(), type)
-        {
-            var hashParts = fullHash.Split('|');
-            this.HashIncludeProperty1 = (THashIncludeProperty1)Convert.ChangeType(System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(hashParts[1])), typeof(THashIncludeProperty1));
-        }
-
-        public LazyHashableObject(IHashableObject hashableObject, Func<IHashableObject, THashIncludeProperty1> hashIncludePropertyProvider)
-            : base(hashableObject)
-        {
-            this.HashIncludeProperty1 = hashIncludePropertyProvider(hashableObject);
-        }
-
-        public override string FullHash
-        {
-            get
-            {
-                var prop1Text = this.HashIncludeProperty1?.ToString() ?? "";
-                var prop1Bytes = System.Text.Encoding.UTF8.GetBytes(prop1Text);
-                var hashPart1 = Convert.ToBase64String(prop1Bytes);
-                return $"{this.Hash}|{hashPart1}";
-            }
-        }
-    }
-
-    public class LazyHashableObject<THashIncludeProperty1, THashIncludeProperty2> : LazyHashableObject
-    {
-        public THashIncludeProperty1 HashIncludeProperty1 { get; set; }
-        public THashIncludeProperty2 HashIncludeProperty2 { get; set; }
-
-        public LazyHashableObject(IRepository repository, string fullHash, string type)
-            : base(repository, fullHash.Split('|').First(), type)
-        {
-            var hashParts = fullHash.Split('|');
-            this.HashIncludeProperty1 = (THashIncludeProperty1)Convert.ChangeType(System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(hashParts[1])), typeof(THashIncludeProperty1));
-            this.HashIncludeProperty2 = (THashIncludeProperty2)Convert.ChangeType(System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(hashParts[2])), typeof(THashIncludeProperty2));
-        }
-
-        public LazyHashableObject(IHashableObject hashableObject, Func<IHashableObject, THashIncludeProperty1> hashIncludeProperty1Provider, Func<IHashableObject, THashIncludeProperty2> hashIncludeProperty2Provider)
-            : base(hashableObject)
-        {
-            this.HashIncludeProperty1 = hashIncludeProperty1Provider(hashableObject);
-            this.HashIncludeProperty2 = hashIncludeProperty2Provider(hashableObject);
-        }
-
-        /// <summary>
-        /// <inheritDoc />
-        /// </summary>
-        public override string FullHash
-        {
-            get
-            {
-                var prop1Text = this.HashIncludeProperty1?.ToString() ?? "";
-                var prop1Bytes = System.Text.Encoding.UTF8.GetBytes(prop1Text);
-                var hashPart1 = Convert.ToBase64String(prop1Bytes);
-
-                var prop2Text = this.HashIncludeProperty2?.ToString() ?? "";
-                var prop2Bytes = System.Text.Encoding.UTF8.GetBytes(prop2Text);
-                var hashPart2 = Convert.ToBase64String(prop2Bytes);
-
-                return $"{this.Hash}|{hashPart1}|{hashPart2}";
-            }
-        }
-    }
-
-    public class LazyHashableObject<THashIncludeProperty1, THashIncludeProperty2, THashIncludeProperty3> : LazyHashableObject
-    {
-        public THashIncludeProperty1 HashIncludeProperty1 { get; set; }
-        public THashIncludeProperty2 HashIncludeProperty2 { get; set; }
-        public THashIncludeProperty3 HashIncludeProperty3 { get; set; }
-
-        public LazyHashableObject(IRepository repository, string fullHash, string type)
-            : base(repository, fullHash.Split('|').First(), type)
-        {
-            var hashParts = fullHash.Split('|');
-            this.HashIncludeProperty1 = (THashIncludeProperty1)Convert.ChangeType(System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(hashParts[1])), typeof(THashIncludeProperty1));
-            this.HashIncludeProperty2 = (THashIncludeProperty2)Convert.ChangeType(System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(hashParts[2])), typeof(THashIncludeProperty2));
-            this.HashIncludeProperty3 = (THashIncludeProperty3)Convert.ChangeType(System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(hashParts[3])), typeof(THashIncludeProperty3));
-        }
-
-        public LazyHashableObject(IHashableObject hashableObject, Func<IHashableObject, THashIncludeProperty1> hashIncludeProperty1Provider, Func<IHashableObject, THashIncludeProperty2> hashIncludeProperty2Provider, Func<IHashableObject, THashIncludeProperty3> hashIncludeProperty3Provider)
-            : base(hashableObject)
-        {
-            this.HashIncludeProperty1 = hashIncludeProperty1Provider(hashableObject);
-            this.HashIncludeProperty2 = hashIncludeProperty2Provider(hashableObject);
-            this.HashIncludeProperty3 = hashIncludeProperty3Provider(hashableObject);
-        }
-
-        /// <summary>
-        /// <inheritDoc />
-        /// </summary>
-        public override string FullHash
-        {
-            get
-            {
-                var prop1Text = this.HashIncludeProperty1?.ToString() ?? "";
-                var prop1Bytes = System.Text.Encoding.UTF8.GetBytes(prop1Text);
-                var hashPart1 = Convert.ToBase64String(prop1Bytes);
-
-                var prop2Text = this.HashIncludeProperty2?.ToString() ?? "";
-                var prop2Bytes = System.Text.Encoding.UTF8.GetBytes(prop2Text);
-                var hashPart2 = Convert.ToBase64String(prop2Bytes);
-
-                var prop3Text = this.HashIncludeProperty3?.ToString() ?? "";
-                var prop3Bytes = System.Text.Encoding.UTF8.GetBytes(prop3Text);
-                var hashPart3 = Convert.ToBase64String(prop3Bytes);
-
-                return $"{this.Hash}|{hashPart1}|{hashPart2}|{hashPart3}";
-            }
         }
     }
 }

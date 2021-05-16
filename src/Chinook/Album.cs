@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -96,7 +95,7 @@ namespace Chinook
         protected override object GetContent()
         {
             var trackFullHashes = this.Tracks?
-                .OrderBy(t => t.HashIncludeProperty1)
+                //.OrderBy(t => t.HashIncludeProperty1)
                 .Select(t => t.FullHash)
                 .ToArray();
             var content = new AlbumContent
@@ -116,6 +115,8 @@ namespace Chinook
                 yield return await Task.FromResult(track);
             }
         }
+
+        public override string UniqueId => this.AlbumId.ToString();
     }
 
     /// <summary>
@@ -123,7 +124,7 @@ namespace Chinook
     /// 1. AlbumId
     /// 2. Album Name
     /// </summary>
-    public class LazyAlbum : LazyHashableObject<int>
+    public class LazyAlbum : LazyHashableObject
     {
         public LazyAlbum(IRepository repository, string fullHash)
             : base(repository, fullHash, Album.AlbumContentType)
@@ -131,8 +132,19 @@ namespace Chinook
         }
 
         public LazyAlbum(Album album)
-            : base(album, a => (a as Album).AlbumId)
+            : base(album)
         {
+        }
+
+        private int? _AlbumId;
+        public int AlbumId
+        {
+            get
+            {
+                if (!_AlbumId.HasValue)
+                    _AlbumId = int.Parse(this.UniqueId);
+                return _AlbumId.Value;
+            }
         }
     }
 }

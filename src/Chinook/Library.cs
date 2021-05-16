@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -54,7 +53,7 @@ namespace Chinook
         protected override object GetContent()
         {
             var artistFullHashes = this.Artists?
-                .OrderBy(artist => artist.HashIncludeProperty1)
+                //.OrderBy(artist => artist.HashIncludeProperty1)
                 .Select(artist => artist.FullHash)
                 .ToArray();
             var content = new LibraryContent
@@ -72,6 +71,8 @@ namespace Chinook
                 yield return await Task.FromResult(artist);
             }
         }
+
+        public override string UniqueId => null;
     }
 
     /// <summary>

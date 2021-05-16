@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Git4e;
@@ -182,6 +181,8 @@ namespace Chinook
                 yield return await Task.FromResult(this.MediaType);
             }
         }
+
+        public override string UniqueId => this.TrackId.ToString();
     }
 
     /// <summary>
@@ -190,7 +191,7 @@ namespace Chinook
     /// 2. Genre->GenreId
     /// 3. MediaType->MediaTypeId
     /// </summary>
-    public class LazyTrack : LazyHashableObject<int, string, string>
+    public class LazyTrack : LazyHashableObject
     {
         public LazyTrack(IRepository repository, string fullHash)
             : base(repository, fullHash, Track.TrackContentType)
@@ -198,8 +199,23 @@ namespace Chinook
         }
 
         public LazyTrack(Track track)
-            : base(track, t => (t as Track).TrackId, t => (t as Track).Genre?.GetValue<Genre>().GenreId, t => (t as Track).MediaType?.GetValue<MediaType>().MediaTypeId)
+            : base(track, track.Genre?.GetValue<Genre>().GenreId, track.MediaType?.GetValue<MediaType>().MediaTypeId)
         {
         }
+
+        private int? _TrackId;
+        public int TrackId
+        {
+            get
+            {
+                if (!_TrackId.HasValue)
+                    _TrackId = int.Parse(this.UniqueId);
+                return _TrackId.Value;
+            }
+        }
+
+        public string GenreId => this.IncludedProperties[0];
+
+        public string MediaTypeId => this.IncludedProperties[1];
     }
 }

@@ -21,12 +21,11 @@ namespace Git4e
 
         public abstract string Type { get; protected set; }
         public abstract string Hash { get; protected set; }
+        public abstract string UniqueId { get; protected set; }
         public abstract string FullHash { get; }
 
         public TaskAwaiter<IHashableObject> GetAwaiter() => Value.GetAwaiter();
         public abstract IAsyncEnumerable<IHashableObject> GetChildObjects();
-
-        //public T FinalValue { get => this.Value.Result; }
 
         public TReal GetValue<TReal>()
             where TReal: IHashableObject

@@ -74,5 +74,7 @@ namespace Git4e
                 yield return root;
             }
         }
+
+        public override string UniqueId => null;
     }
 }

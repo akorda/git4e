@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,9 +24,9 @@ namespace Chinook
             public Task<IHashableObject> ToHashableObjectAsync(string hash, IRepository repository, CancellationToken cancellationToken = default)
             {
                 var albums =
-                    this.AlbumFullHashes
+                    this.AlbumFullHashes?
                     .Select(posHash => new LazyAlbum(repository, posHash))
-                    .ToList();
+                    .ToList() ?? new List<LazyAlbum>();
                 var artist = new Artist(repository, hash)
                 {
                     ArtistId = this.ArtistId,
@@ -93,7 +92,7 @@ namespace Chinook
         protected override object GetContent()
         {
             var albumFullHashes = this.Albums?
-                .OrderBy(album => album.HashIncludeProperty1)
+                //.OrderBy(album => album.HashIncludeProperty1)
                 .Select(album => album.FullHash)
                 .ToArray();
             var content = new ArtistContent
@@ -113,6 +112,8 @@ namespace Chinook
                 yield return await Task.FromResult(album);
             }
         }
+
+        public override string UniqueId => this.ArtistId.ToString();
     }
 
     /// <summary>
@@ -120,7 +121,7 @@ namespace Chinook
     /// 1. ArtistId
     /// 2. Artist Name
     /// </summary>
-    public class LazyArtist : LazyHashableObject<int, string>
+    public class LazyArtist : LazyHashableObject
     {
         public LazyArtist(IRepository repository, string fullHash)
             : base(repository, fullHash, Artist.ArtistContentType)
@@ -128,8 +129,21 @@ namespace Chinook
         }
 
         public LazyArtist(Artist artist)
-            : base(artist, a => (a as Artist).ArtistId, a => (a as Artist).Name)
+            : base(artist, artist.Name)
         {
         }
+
+        private int? _ArtistId;
+        public int ArtistId
+        {
+            get
+            {
+                if (!_ArtistId.HasValue)
+                    _ArtistId = int.Parse(this.UniqueId);
+                return _ArtistId.Value;
+            }
+        }
+
+        public string Name => this.IncludedProperties[0];
     }
 }

@@ -42,8 +42,8 @@ namespace TestClient
 
             //string parentCommitHash = null;
 
-            //var commitHash = await UseCase0(configuration, objectStore, repository, cancellationToken);
-            var commitHash = await CreateNewBranch(configuration, objectStore, repository, cancellationToken);
+            var commitHash = await UseCase0(configuration, objectStore, repository, cancellationToken);
+            //var commitHash = await CreateNewBranch(configuration, objectStore, repository, cancellationToken);
             //var commitHash = await UseCase1(configuration, serviceProvider, repository, cancellationToken);
             //var commitHash = await UseCase2(configuration, serviceProvider, objectStore, repository, cancellationToken);
 
@@ -81,11 +81,36 @@ namespace TestClient
         {
             var connectionString = configuration.GetConnectionString("Chinook");
 
+            var branch = "main";
+            var commit = await repository.CheckoutAsync(branch, cancellationToken);
+            if (commit != null)
+            {
+                var library = commit.Root.GetValue<Library>();
+                foreach (var lazyArtist in library.Artists)
+                {
+                    var artistId = lazyArtist.ArtistId;
+                    var artistName = lazyArtist.Name;
+
+                    var artist = lazyArtist.GetValue<Artist>();
+                    foreach (var lazyAlbum in artist.Albums)
+                    {
+                        var albumId = lazyAlbum.AlbumId;
+
+                        var album = lazyAlbum.GetValue<Album>();
+                        foreach (var lazyTrack in album.Tracks)
+                        {
+                            var trackId = lazyTrack.TrackId;
+                            var genreId = lazyTrack.GenreId;
+                            var mediaTypeId = lazyTrack.MediaTypeId;
+
+                            var track = lazyTrack.GetValue<Track>();
+                        }
+                    }
+                }
+            }
+
             var data = new Chinook.DataLoader();
             await data.LoadDataAsync(connectionString, repository, cancellationToken);
-
-            var branch = "main";
-            await repository.CheckoutAsync(branch, cancellationToken);    
 
             var commitHash = await repository.CommitAsync("akorda", DateTime.Now, "Fix albums", data.Library, cancellationToken);
             return commitHash;
@@ -134,35 +159,36 @@ namespace TestClient
         private static async Task<string> UseCase2(IConfiguration configuration, IServiceProvider serviceProvider, IObjectStore objectStore, IRepository repository, CancellationToken cancellationToken = default)
         {
             var hash = await objectStore.ReadHeadAsync(cancellationToken);
-            if (hash == null) return null;
+            if (hash == null)
+                return null;
 
             var branch = "main";
             //load ZV and change a vessel property
             var commit = await repository.CheckoutAsync(branch, cancellationToken);
-            var root = commit.Root as LazyHashableObject<string>;
-            if (root.HashIncludeProperty1 != "1")
+            var root = commit.Root as LazyPlan;
+            if (root.PlanVersionId != "1")
                 return null;
 
             //var plan = (await commit.Root) as Plan;
             var plan = commit.Root.GetValue<Plan>();
 
-            var lazyVessel = plan.Vessels.FirstOrDefault(v => v.HashIncludeProperty1 == "ZV");
+            var lazyVessel = plan.Vessels.FirstOrDefault(v => v.VesselCode == "ZV");
             lazyVessel.GetValue<Vessel>().Name += "I";
             plan.MarkAsDirty();
 
             var planHash = plan.FullHash;
 
             //load UU and change several positions
-            lazyVessel = plan.Vessels.FirstOrDefault(v => v.HashIncludeProperty1 == "UU");
+            lazyVessel = plan.Vessels.FirstOrDefault(v => v.VesselCode == "UU");
             //await Task.WhenAll(lazyVessel.FinalValue.Positions.Select(p => p.Value));
 
-            var lazyPositions = lazyVessel.GetValue<Vessel>().Positions.Where(p => p.HashIncludeProperty1 == "OS");
+            var lazyPositions = lazyVessel.GetValue<Vessel>().Positions.Where(p => p.DutyRankCode == "OS");
 
             foreach (var lazyPosition in lazyPositions.ToArray())
             {
                 lazyPosition.GetValue<VesselPosition>().PositionNo++;
 
-                var asns = lazyPosition.GetValue<VesselPosition>().SeamanAssignments.Where(asn => asn.HashIncludeProperty2 == "120238").ToArray();
+                var asns = lazyPosition.GetValue<VesselPosition>().SeamanAssignments.Where(asn => asn.SeamanCode == "120238").ToArray();
                 foreach (var asn in asns)
                 {
                     asn.GetValue<SeamanAssignment>().StartOverlap--;

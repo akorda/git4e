@@ -16,18 +16,15 @@ namespace CrewSchedule
         public class VesselPositionContent : IContent
         {
             [ProtoMember(1)]
-            public string VesselPositionId { get; set; }
-
-            [ProtoMember(2)]
             public string VesselCode { get; set; }
 
-            [ProtoMember(3)]
+            [ProtoMember(2)]
             public string DutyRankCode { get; set; }
 
-            [ProtoMember(4)]
+            [ProtoMember(3)]
             public int PositionNo { get; set; }
 
-            [ProtoMember(5)]
+            [ProtoMember(4)]
             public string[] SeamanAssignmentFullHashes { get; set; }
 
             public Task<IHashableObject> ToHashableObjectAsync(string hash, IRepository repository, CancellationToken cancellationToken = default)
@@ -37,27 +34,12 @@ namespace CrewSchedule
                     .ToList();
                 var position = new VesselPosition(repository, hash)
                 {
-                    VesselPositionId = this.VesselPositionId,
                     VesselCode = this.VesselCode,
                     DutyRankCode = this.DutyRankCode,
                     PositionNo = this.PositionNo,
                     SeamanAssignments = seamanAssignments
                 };
                 return Task.FromResult(position as IHashableObject);
-            }
-        }
-
-        string _VesselPositionId;
-        public string VesselPositionId
-        {
-            get => _VesselPositionId;
-            set
-            {
-                if (_VesselPositionId != value)
-                {
-                    _VesselPositionId = value;
-                    this.MarkAsDirty();
-                }
             }
         }
 
@@ -131,7 +113,6 @@ namespace CrewSchedule
                 .ToArray();
             var content = new VesselPositionContent
             {
-                VesselPositionId = this.VesselPositionId,
                 VesselCode = this.VesselCode,
                 DutyRankCode = this.DutyRankCode,
                 PositionNo = this.PositionNo,
@@ -148,6 +129,8 @@ namespace CrewSchedule
                 yield return await Task.FromResult(assignment);
             }
         }
+
+        public override string UniqueId => $"{VesselCode}.{DutyRankCode}.{PositionNo}";
     }
 
     /// <summary>
@@ -155,7 +138,7 @@ namespace CrewSchedule
     /// 1. DutyRankCode
     /// 2. PositionNo
     /// </summary>
-    public class LazyVesselPosition : LazyHashableObject<string, int>
+    public class LazyVesselPosition : LazyHashableObject
     {
         public LazyVesselPosition(IRepository repository, string fullHash)
             : base(repository, fullHash, VesselPosition.VesselPositionContentType)
@@ -163,8 +146,21 @@ namespace CrewSchedule
         }
 
         public LazyVesselPosition(VesselPosition vesselPosition)
-            : base(vesselPosition, v => (v as VesselPosition).DutyRankCode, v => (v as VesselPosition).PositionNo)
+            : base(vesselPosition, vesselPosition.DutyRankCode, vesselPosition.PositionNo.ToString())
         {
+        }
+
+        public string DutyRankCode => this.IncludedProperties[0];
+
+        private int? _PositionNo;
+        public int PositionNo
+        {
+            get
+            {
+                if (!_PositionNo.HasValue)
+                    _PositionNo = int.Parse(this.IncludedProperties[1]);
+                return _PositionNo.Value;
+            }
         }
     }
 }

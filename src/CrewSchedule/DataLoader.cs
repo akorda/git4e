@@ -65,7 +65,7 @@ namespace CrewSchedule
 	                    WHERE PlanVersionId = @PlanVersionId
 	                    GROUP BY VesselCode, DutyRankCode, PositionNo
                     )
-                    SELECT VP.VesselPositionId, VP.VesselCode, VP.DutyRankCode, VP.PositionNo
+                    SELECT VP.VesselCode, VP.DutyRankCode, VP.PositionNo
                     FROM cs.VesselPositions VP
                     RIGHT JOIN SA ON SA.VesselCode = VP.VesselCode AND SA.DutyRankCode = VP.DutyRankCode AND SA.PositionNo = VP.PositionNo
                     ";
@@ -75,7 +75,6 @@ namespace CrewSchedule
                     .Select(row =>
                     {
                         var position = ActivatorUtilities.CreateInstance<VesselPosition>(serviceProvider);
-                        position.VesselPositionId = row.VesselPositionId;
                         position.VesselCode = row.VesselCode;
                         position.DutyRankCode = row.DutyRankCode;
                         position.PositionNo = row.PositionNo;

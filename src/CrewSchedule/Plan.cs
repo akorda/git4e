@@ -90,13 +90,15 @@ namespace CrewSchedule
                 yield return await Task.FromResult(vessel);
             }
         }
+
+        public override string UniqueId => null;
     }
 
     /// <summary>
     /// Plan Hash with the following included properties:
     /// 1. PlanVersionId
     /// </summary>
-    public class LazyPlan : LazyHashableObject<string>
+    public class LazyPlan : LazyHashableObject
     {
         public LazyPlan(IRepository repository, string fullHash)
             : base(repository, fullHash, Plan.PlanContentType)
@@ -104,8 +106,10 @@ namespace CrewSchedule
         }
 
         public LazyPlan(Plan plan)
-            : base(plan, p => (p as Plan).PlanVersionId)
+            : base(plan, plan.PlanVersionId)
         {
         }
+
+        public string PlanVersionId => this.IncludedProperties[0];
     }
 }

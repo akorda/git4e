@@ -11,6 +11,7 @@ namespace Git4e
     public abstract class HashableObject : IHashableObject
     {
         public string Type { get; private set; }
+        public abstract string UniqueId { get; }
         public IRepository Repository {get; set; }
         public IContentSerializer ContentSerializer { get => this.Repository.ContentSerializer; }
         public IHashCalculator HashCalculator { get => this.Repository.HashCalculator; }

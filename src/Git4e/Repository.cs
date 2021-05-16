@@ -33,22 +33,27 @@ namespace Git4e
 
         public async Task<ICommit> CheckoutAsync(string branch, CancellationToken cancellationToken = default)
         {
+            ICommit commit = null;
+
             var commitHash = await this.ObjectStore.CheckoutBranchAsync(branch, cancellationToken);
-
-            var contentTypeName = await this.ObjectStore.GetObjectTypeAsync(commitHash, cancellationToken);
-            if (contentTypeName != Commit.ContentTypeName)
+            if (commitHash != null)
             {
-                throw new Git4eException(Git4eErrorCode.InvalidContentType, $"Object with hash '{commitHash}' is not a commit");
+                var contentTypeName = await this.ObjectStore.GetObjectTypeAsync(commitHash, cancellationToken);
+                if (contentTypeName != Commit.ContentTypeName)
+                {
+                    throw new Git4eException(Git4eErrorCode.InvalidContentType, $"Object with hash '{commitHash}' is not a commit");
+                }
+
+                var contentType = this.ContentTypeResolver.ResolveContentType(contentTypeName);
+                var objectContent = await this.ObjectStore.GetObjectContentAsync(commitHash, contentType, cancellationToken);
+                var commitContent = objectContent as IContent;
+                commit = (await commitContent.ToHashableObjectAsync(commitHash, this, cancellationToken)) as ICommit;
+                if (commit != null)
+                {
+                    this.HeadCommitHash = commitHash;
+                }
             }
 
-            var contentType = this.ContentTypeResolver.ResolveContentType(contentTypeName);
-            var objectContent = await this.ObjectStore.GetObjectContentAsync(commitHash, contentType, cancellationToken);
-            var commitContent = objectContent as IContent;
-            var commit = (await commitContent.ToHashableObjectAsync(commitHash, this, cancellationToken)) as ICommit;
-            if (commit != null)
-            {
-                this.HeadCommitHash = commitHash;
-            }
             return commit;
         }
 

@@ -88,8 +88,8 @@ namespace CrewSchedule
         protected override object GetContent()
         {
             var positionFullHashes = this.Positions?
-                .OrderBy(pos => pos.HashIncludeProperty1)
-                .ThenBy(pos => pos.HashIncludeProperty2)
+                //.OrderBy(pos => pos.HashIncludeProperty1)
+                //.ThenBy(pos => pos.HashIncludeProperty2)
                 .Select(pos => pos.FullHash)
                 .ToArray();
             var content = new VesselContent
@@ -109,6 +109,8 @@ namespace CrewSchedule
                 yield return await Task.FromResult(position);
             }
         }
+
+        public override string UniqueId => this.VesselCode;
     }
 
     /// <summary>
@@ -116,7 +118,7 @@ namespace CrewSchedule
     /// 1. VesselCode
     /// 2. Vessel Name
     /// </summary>
-    public class LazyVessel : LazyHashableObject<string, string>
+    public class LazyVessel : LazyHashableObject
     {
         public LazyVessel(IRepository repository, string fullHash)
             : base(repository, fullHash, Vessel.VesselContentType)
@@ -124,8 +126,12 @@ namespace CrewSchedule
         }
 
         public LazyVessel(Vessel vessel)
-            : base(vessel, v => (v as Vessel).VesselCode, v => (v as Vessel).Name)
+            : base(vessel, vessel.Name)
         {
         }
+
+        public string VesselCode => this.UniqueId;
+
+        public string Name => this.IncludedProperties[0];
     }
 }

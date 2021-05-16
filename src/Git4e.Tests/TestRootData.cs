@@ -73,5 +73,7 @@ namespace Git4e.Tests
             };
             return content;
         }
+
+        public override string UniqueId => null;
     }
 }
