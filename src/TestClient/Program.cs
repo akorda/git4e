@@ -42,10 +42,12 @@ namespace TestClient
 
             //string parentCommitHash = null;
 
-            var commitHash = await UseCase0(configuration, objectStore, repository, cancellationToken);
-            //var commitHash = await CreateNewBranch(configuration, objectStore, repository, cancellationToken);
-            //var commitHash = await UseCase1(configuration, serviceProvider, repository, cancellationToken);
-            //var commitHash = await UseCase2(configuration, serviceProvider, objectStore, repository, cancellationToken);
+            string commitHash = null;
+            commitHash = await UseCase0(configuration, objectStore, repository, cancellationToken);
+            await Compare2LastCommits(repository, cancellationToken);
+            //commitHash = await CreateNewBranch(configuration, objectStore, repository, cancellationToken);
+            //commitHash = await UseCase1(configuration, serviceProvider, repository, cancellationToken);
+            //commitHash = await UseCase2(configuration, serviceProvider, objectStore, repository, cancellationToken);
 
             //load a full-object from hash
             var contentTypeName = await objectStore.GetObjectTypeAsync(commitHash, cancellationToken);
@@ -69,6 +71,173 @@ namespace TestClient
             }
         }
 
+        private static async Task Compare2LastCommits(IRepository repository, CancellationToken cancellationToken)
+        {
+            var branch = "main";
+            var lastCommit = await repository.CheckoutAsync(branch, cancellationToken);
+
+            var parentCommitHash = lastCommit.ParentCommitHashes?.FirstOrDefault();
+            var contentTypeName = await repository.ObjectStore.GetObjectTypeAsync(lastCommit.Hash, cancellationToken);
+            var contentType = repository.ContentTypeResolver.ResolveContentType(contentTypeName);
+            var commitContent = (await repository.ObjectStore.GetObjectContentAsync(parentCommitHash, contentType, cancellationToken)) as Commit.CommitContent;
+            var previousCommit = (await commitContent.ToHashableObjectAsync(parentCommitHash, repository, cancellationToken)) as Commit;
+
+            await Compare2Commits(lastCommit, previousCommit, cancellationToken);
+        }
+
+        private static async Task Compare2Commits(ICommit commit, Commit otherCommit, CancellationToken cancellationToken)
+        {
+            if (commit.Root.Hash == otherCommit.Root.Hash)
+            {
+                Console.WriteLine($"Commit '{commit.Hash}' and commit '{otherCommit.Hash}' have the same Root");
+                return;
+            }
+
+            var lib1 = commit.Root.GetValue<Library>();
+            var lib2 = otherCommit.Root.GetValue<Library>();
+
+            //find artists in lib1 but not in lib2 and updated artists
+            foreach (var la1 in lib1.Artists)
+            {
+                var la2 = lib2.Artists.FirstOrDefault(a => a.ArtistId == la1.ArtistId);
+                if (la2 == null)
+                {
+                    Console.WriteLine($"Artist '{la1.Name}' ({la1.ArtistId}) created at commit '{commit.Hash}'");
+                    continue;
+                }
+
+                if (la1.Hash != la2.Hash)
+                {
+                    Console.WriteLine($"Artist '{la1.Name}' ({la1.ArtistId}) updated at commit '{commit.Hash}'");
+                    await CompareArtists(commit, la1.GetValue<Artist>(), la2.GetValue<Artist>(), cancellationToken);
+                    continue;
+                }
+            }
+
+            foreach (var la2 in lib2.Artists)
+            {
+                var la1 = lib1.Artists.FirstOrDefault(a => a.ArtistId == la2.ArtistId);
+                if (la1 == null)
+                {
+                    Console.WriteLine($"Artist '{la2.Name}' ({la2.ArtistId}) deleted at commit '{commit.Hash}'");
+                    continue;
+                }
+            }
+        }
+
+        private static async Task CompareArtists(ICommit commit, Artist artist1, Artist artist2, CancellationToken cancellationToken)
+        {
+            //compare simple properties. Their Ids are the same
+
+            if (!string.Equals(artist1.Name, artist2.Name))
+            {
+                Console.WriteLine($"{nameof(Artist.Name)}: '{artist1.Name}' <> '{artist2.Name}'");
+            }
+
+            //compare collections
+            //find artists in lib1 but not in lib2 and updated artists
+            foreach (var al1 in artist1.Albums)
+            {
+                var al2 = artist2.Albums.FirstOrDefault(a => a.AlbumId == al1.AlbumId);
+                if (al2 == null)
+                {
+                    Console.WriteLine($"Album '{al1.AlbumId}' ({al1.AlbumId}) created at commit '{commit.Hash}'");
+                    continue;
+                }
+
+                if (al1.Hash != al2.Hash)
+                {
+                    Console.WriteLine($"Album '{al1.AlbumId}' ({al1.AlbumId}) updated at commit '{commit.Hash}'");
+                    await CompareAlbums(commit, al1.GetValue<Album>(), al2.GetValue<Album>(), cancellationToken);
+                    continue;
+                }
+            }
+
+            foreach (var al2 in artist2.Albums)
+            {
+                var al1 = artist1.Albums.FirstOrDefault(a => a.AlbumId == al2.AlbumId);
+                if (al1 == null)
+                {
+                    Console.WriteLine($"Album '{al2.AlbumId}' deleted at commit '{commit.Hash}'");
+                    continue;
+                }
+            }
+        }
+
+        private static async Task CompareAlbums(ICommit commit, Album album1, Album album2, CancellationToken cancellationToken)
+        {
+            //compare simple properties. Their Ids are the same
+
+            if (!string.Equals(album1.Title, album2.Title))
+            {
+                Console.WriteLine($"{nameof(Album.Title)}: '{album1.Title}' <> '{album2.Title}'");
+            }
+
+            //compare collections
+            //find artists in lib1 but not in lib2 and updated artists
+            foreach (var tr1 in album1.Tracks)
+            {
+                var tr2 = album2.Tracks.FirstOrDefault(a => a.TrackId == tr1.TrackId);
+                if (tr2 == null)
+                {
+                    Console.WriteLine($"Album '{tr1.TrackId}' ({tr1.TrackId}) created at commit '{commit.Hash}'");
+                    continue;
+                }
+
+                if (tr1.Hash != tr2.Hash)
+                {
+                    Console.WriteLine($"Album '{tr1.TrackId}' ({tr1.TrackId}) updated at commit '{commit.Hash}'");
+                    await CompareTracks(commit, tr1.GetValue<Track>(), tr2.GetValue<Track>(), cancellationToken);
+                    continue;
+                }
+            }
+
+            foreach (var tr2 in album2.Tracks)
+            {
+                var tr1 = album1.Tracks.FirstOrDefault(a => a.TrackId == tr2.TrackId);
+                if (tr1 == null)
+                {
+                    Console.WriteLine($"Track '{tr2.TrackId}' deleted at commit '{commit.Hash}'");
+                    continue;
+                }
+            }
+        }
+
+        private static Task CompareTracks(ICommit commit, Track track1, Track track2, CancellationToken cancellationToken)
+        {
+            //compare simple properties. Their Ids are the same
+
+            if (!string.Equals(track1.Name, track2.Name))
+            {
+                Console.WriteLine($"{nameof(Track.Name)}: '{track1.Name}' <> '{track2.Name}'");
+            }
+            if (!string.Equals(track1.Composer, track2.Composer))
+            {
+                Console.WriteLine($"{nameof(Track.Composer)}: '{track1.Composer}' <> '{track2.Composer}'");
+            }
+            if (track1.Milliseconds != track2.Milliseconds)
+            {
+                Console.WriteLine($"{nameof(Track.Milliseconds)}: '{track1.Milliseconds}' <> '{track2.Milliseconds}'");
+            }
+            if (track1.Bytes != track2.Bytes)
+            {
+                Console.WriteLine($"{nameof(Track.Bytes)}: '{track1.Bytes}' <> '{track2.Bytes}'");
+            }
+            if (track1.UnitPrice != track2.UnitPrice)
+            {
+                Console.WriteLine($"{nameof(Track.UnitPrice)}: '{track1.UnitPrice}' <> '{track2.UnitPrice}'");
+            }
+            if (!string.Equals(track1.Genre.UniqueId, track2.Genre.UniqueId))
+            {
+                Console.WriteLine($"{nameof(Track.Genre)}: '{track1.Genre.UniqueId}' <> '{track2.Genre.UniqueId}'");
+            }
+            if (!string.Equals(track1.MediaType.UniqueId, track2.MediaType.UniqueId))
+            {
+                Console.WriteLine($"{nameof(Track.MediaType)}: '{track1.MediaType.UniqueId}' <> '{track2.MediaType.UniqueId}'");
+            }
+            return Task.CompletedTask;
+        }
+
         private static IConfiguration GetConfiguration()
         {
             return new ConfigurationBuilder()
@@ -83,7 +252,7 @@ namespace TestClient
 
             var branch = "main";
             var commit = await repository.CheckoutAsync(branch, cancellationToken);
-            if (commit != null)
+            if (false && commit != null)
             {
                 var library = commit.Root.GetValue<Library>();
                 foreach (var lazyArtist in library.Artists)
