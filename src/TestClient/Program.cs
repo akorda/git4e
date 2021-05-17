@@ -135,7 +135,7 @@ namespace TestClient
             }
 
             //compare collections
-            //find artists in lib1 but not in lib2 and updated artists
+            //find albums in lib1 but not in lib2 and albums artists
             foreach (var al1 in artist1.Albums)
             {
                 var al2 = artist2.Albums.FirstOrDefault(a => a.AlbumId == al1.AlbumId);
@@ -174,19 +174,19 @@ namespace TestClient
             }
 
             //compare collections
-            //find artists in lib1 but not in lib2 and updated artists
+            //find tracks in lib1 but not in lib2 and updated tracks
             foreach (var tr1 in album1.Tracks)
             {
                 var tr2 = album2.Tracks.FirstOrDefault(a => a.TrackId == tr1.TrackId);
                 if (tr2 == null)
                 {
-                    Console.WriteLine($"Album '{tr1.TrackId}' ({tr1.TrackId}) created at commit '{commit.Hash}'");
+                    Console.WriteLine($"Track '{tr1.TrackId}' ({tr1.TrackId}) created at commit '{commit.Hash}'");
                     continue;
                 }
 
                 if (tr1.Hash != tr2.Hash)
                 {
-                    Console.WriteLine($"Album '{tr1.TrackId}' ({tr1.TrackId}) updated at commit '{commit.Hash}'");
+                    Console.WriteLine($"Track '{tr1.TrackId}' ({tr1.TrackId}) updated at commit '{commit.Hash}'");
                     await CompareTracks(commit, tr1.GetValue<Track>(), tr2.GetValue<Track>(), cancellationToken);
                     continue;
                 }
