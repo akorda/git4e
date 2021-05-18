@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -91,6 +92,26 @@ namespace Git4e
         public async Task InitializeAsync(CancellationToken cancellationToken = default)
         {
             await this.ObjectStore.InitializeAsync(cancellationToken);
+        }
+
+        public async Task<ICommit> GetParentCommitAsync(ICommit commit, CancellationToken cancellationToken = default)
+        {
+            if (commit is null)
+            {
+                throw new ArgumentNullException(nameof(commit));
+            }
+
+            var parentCommitHash = commit.ParentCommitHashes?.FirstOrDefault();
+            if (parentCommitHash == null)
+            {
+                return null;
+            }
+
+            var contentTypeName = await this.ObjectStore.GetObjectTypeAsync(commit.Hash, cancellationToken);
+            var contentType = this.ContentTypeResolver.ResolveContentType(contentTypeName);
+            var commitContent = (await this.ObjectStore.GetObjectContentAsync(parentCommitHash, contentType, cancellationToken)) as IContent;
+            var parentCommit = (await commitContent.ToHashableObjectAsync(parentCommitHash, this, cancellationToken)) as ICommit;
+            return parentCommit;
         }
     }
 }

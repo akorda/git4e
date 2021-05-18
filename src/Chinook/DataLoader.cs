@@ -72,7 +72,7 @@ namespace Chinook
                     var albumId = albumTracks.Key;
                     if (albumsMap.TryGetValue(albumId, out var album))
                     {
-                        album.Tracks = albumTracks.Select(track => new LazyTrack(track)).ToList();
+                        album.Tracks = albumTracks.Select(track => new LazyTrack(track)).ToHashableList(repository);
                     }
                 }
 
@@ -81,13 +81,13 @@ namespace Chinook
                     var artistId = artistAlbums.Key;
                     if (artistsMap.TryGetValue(artistId, out var artist))
                     {
-                        artist.Albums = artistAlbums.Select(album => new LazyAlbum(album)).ToList();
+                        artist.Albums = artistAlbums.Select(album => new LazyAlbum(album)).ToHashableList(repository);
                     }
                 }
 
                 var library = new Library(repository)
                 {
-                    Artists = this.Artists.Select(artist => new LazyArtist(artist)).ToList()
+                    Artists = this.Artists.Select(artist => new LazyArtist(artist)).ToHashableList(repository)
                 };
 
                 this.Library = new LazyLibrary(library);

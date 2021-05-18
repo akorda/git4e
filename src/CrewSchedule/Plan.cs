@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,18 +17,20 @@ namespace CrewSchedule
             [ProtoMember(1)]
             public string PlanVersionId { get; set; }
             [ProtoMember(2)]
+            public string VesselsHash { get; set; }
+            [ProtoMember(3)]
             public string[] VesselFullHashes { get; set; }
 
             public Task<IHashableObject> ToHashableObjectAsync(string hash, IRepository repository, CancellationToken cancellationToken = default)
             {
                 var vessels =
-                    this.VesselFullHashes
+                    this.VesselFullHashes?
                     .Select(vesselHash => new LazyVessel(repository, vesselHash))
-                    .ToList();
+                    ?? new LazyVessel[0];
                 var plan = new Plan(repository, hash)
                 {
                     PlanVersionId = this.PlanVersionId,
-                    Vessels = vessels
+                    Vessels = new HashableList<LazyVessel>(repository, vessels, this.VesselsHash)
                 };
                 return Task.FromResult(plan as IHashableObject);
             }
@@ -49,8 +50,8 @@ namespace CrewSchedule
             }
         }
 
-        List<LazyVessel> _Vessels;
-        public List<LazyVessel> Vessels
+        HashableList<LazyVessel> _Vessels;
+        public HashableList<LazyVessel> Vessels
         {
             get => _Vessels;
             set
@@ -70,14 +71,14 @@ namespace CrewSchedule
 
         protected override object GetContent()
         {
-            var vesselFullHashes = this.Vessels?
-                .OrderBy(vessel => vessel.FullHash)
-                .Select(vessel => vessel.FullHash)
-                .ToArray();
+            if (this.Vessels == null)
+                this.Vessels = new HashableList<LazyVessel>(this.Repository);
+
             var content = new PlanContent
             {
                 PlanVersionId = this.PlanVersionId,
-                VesselFullHashes = vesselFullHashes
+                VesselsHash = this.Vessels.Hash,
+                VesselFullHashes = this.Vessels.FullHashes
             };
             return content;
         }

@@ -20,19 +20,21 @@ namespace CrewSchedule
             [ProtoMember(2)]
             public string Name { get; set; }
             [ProtoMember(3)]
+            public string PositionsHash { get; set; }
+            [ProtoMember(4)]
             public string[] PositionFullHashes { get; set; }
 
             public Task<IHashableObject> ToHashableObjectAsync(string hash, IRepository repository, CancellationToken cancellationToken = default)
             {
                 var positions =
-                    this.PositionFullHashes
+                    this.PositionFullHashes?
                     .Select(posHash => new LazyVesselPosition(repository, posHash))
-                    .ToList();
+                    ?? new LazyVesselPosition[0];
                 var vessel = new Vessel(repository, hash)
                 {
                     VesselCode = this.VesselCode,
                     Name = this.Name,
-                    Positions = positions
+                    Positions = new HashableList<LazyVesselPosition>(repository, positions, this.PositionsHash)
                 };
                 return Task.FromResult(vessel as IHashableObject);
             }
@@ -66,8 +68,8 @@ namespace CrewSchedule
             }
         }
 
-        List<LazyVesselPosition> _Positions;
-        public List<LazyVesselPosition> Positions
+        HashableList<LazyVesselPosition> _Positions;
+        public HashableList<LazyVesselPosition> Positions
         {
             get => _Positions;
             set
@@ -87,23 +89,22 @@ namespace CrewSchedule
 
         protected override object GetContent()
         {
-            var positionFullHashes = this.Positions?
-                //.OrderBy(pos => pos.HashIncludeProperty1)
-                //.ThenBy(pos => pos.HashIncludeProperty2)
-                .Select(pos => pos.FullHash)
-                .ToArray();
+            if (this.Positions == null)
+                this.Positions = new HashableList<LazyVesselPosition>(this.Repository);
+
             var content = new VesselContent
             {
                 VesselCode = this.VesselCode,
                 Name = this.Name,
-                PositionFullHashes = positionFullHashes
+                PositionsHash = this.Positions.Hash,
+                PositionFullHashes = this.Positions.FullHashes
             };
             return content;
         }
 
         public override async IAsyncEnumerable<IHashableObject> GetChildObjects()
         {
-            var positions = this.Positions ?? new List<LazyVesselPosition>();
+            var positions = this.Positions ?? new HashableList<LazyVesselPosition>(this.Repository);
             foreach (var position in positions)
             {
                 yield return await Task.FromResult(position);
@@ -115,8 +116,7 @@ namespace CrewSchedule
 
     /// <summary>
     /// Vessel Hash with the following included properties:
-    /// 1. VesselCode
-    /// 2. Vessel Name
+    /// 1. Vessel Name
     /// </summary>
     public class LazyVessel : LazyHashableObject
     {

@@ -187,9 +187,8 @@ namespace Chinook
 
     /// <summary>
     /// VesselPosition Hash with the following included properties:
-    /// 1. TrackId
-    /// 2. Genre->GenreId
-    /// 3. MediaType->MediaTypeId
+    /// 1. Genre->GenreId
+    /// 2. MediaType->MediaTypeId
     /// </summary>
     public class LazyTrack : LazyHashableObject
     {

@@ -154,8 +154,7 @@ namespace CrewSchedule
 
     /// <summary>
     /// VesselPosition Hash with the following included properties:
-    /// 1. SeamanAssignmentId
-    /// 2. Seaman->SeamanCode
+    /// 1. Seaman->SeamanCode
     /// </summary>
     public class LazySeamanAssignment : LazyHashableObject
     {

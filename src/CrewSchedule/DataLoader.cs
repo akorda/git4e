@@ -149,15 +149,15 @@ namespace CrewSchedule
                 }
 
                 foreach (var position in Positions)
-                    position.SeamanAssignments = positionMap[$"{position.VesselCode}#{position.DutyRankCode}#{position.PositionNo}"].Select(asn => new LazySeamanAssignment(asn)).ToList();
+                    position.SeamanAssignments = positionMap[$"{position.VesselCode}#{position.DutyRankCode}#{position.PositionNo}"].Select(asn => new LazySeamanAssignment(asn)).ToHashableList(repository);
 
                 foreach (var vessel in Vessels)
-                    vessel.Positions = vesselsMap[vessel.VesselCode].Select(vp => new LazyVesselPosition(vp)).ToList();
+                    vessel.Positions = vesselsMap[vessel.VesselCode].Select(vp => new LazyVesselPosition(vp)).ToHashableList(repository);
 
                 var plan = new Plan(repository)
                 {
                     PlanVersionId = planVersionId,
-                    Vessels = Vessels.Select(vessel => new LazyVessel(vessel)).ToList()
+                    Vessels = Vessels.Select(vessel => new LazyVessel(vessel)).ToHashableList(repository)
                 };
 
                 this.Plan = new LazyPlan(plan);

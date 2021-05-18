@@ -17,27 +17,26 @@ namespace CrewSchedule
         {
             [ProtoMember(1)]
             public string VesselCode { get; set; }
-
             [ProtoMember(2)]
             public string DutyRankCode { get; set; }
-
             [ProtoMember(3)]
             public int PositionNo { get; set; }
-
             [ProtoMember(4)]
+            public string SeamanAssignmentsHash { get; set; }
+            [ProtoMember(5)]
             public string[] SeamanAssignmentFullHashes { get; set; }
 
             public Task<IHashableObject> ToHashableObjectAsync(string hash, IRepository repository, CancellationToken cancellationToken = default)
             {
-                var seamanAssignments = this.SeamanAssignmentFullHashes
+                var seamanAssignments = this.SeamanAssignmentFullHashes?
                     .Select(asnHash => new LazySeamanAssignment(repository, asnHash))
-                    .ToList();
+                    ?? new LazySeamanAssignment[0];
                 var position = new VesselPosition(repository, hash)
                 {
                     VesselCode = this.VesselCode,
                     DutyRankCode = this.DutyRankCode,
                     PositionNo = this.PositionNo,
-                    SeamanAssignments = seamanAssignments
+                    SeamanAssignments = new HashableList<LazySeamanAssignment>(repository, seamanAssignments, this.SeamanAssignmentsHash)
                 };
                 return Task.FromResult(position as IHashableObject);
             }
@@ -85,8 +84,8 @@ namespace CrewSchedule
             }
         }
 
-        List<LazySeamanAssignment> _SeamanAssignments;
-        public List<LazySeamanAssignment> SeamanAssignments
+        HashableList<LazySeamanAssignment> _SeamanAssignments;
+        public HashableList<LazySeamanAssignment> SeamanAssignments
         {
             get => _SeamanAssignments;
             set
@@ -106,24 +105,23 @@ namespace CrewSchedule
 
         protected override object GetContent()
         {
-            var asnFullHashes = this.SeamanAssignments?
-                //.OrderBy(asn => asn.StartOverlap)
-                .OrderBy(asn => asn.FullHash)
-                .Select(asn => asn.FullHash)
-                .ToArray();
+            if (this.SeamanAssignments == null)
+                this.SeamanAssignments = new HashableList<LazySeamanAssignment>(this.Repository);
+
             var content = new VesselPositionContent
             {
                 VesselCode = this.VesselCode,
                 DutyRankCode = this.DutyRankCode,
                 PositionNo = this.PositionNo,
-                SeamanAssignmentFullHashes = asnFullHashes
+                SeamanAssignmentsHash = this.SeamanAssignments.Hash,
+                SeamanAssignmentFullHashes = this.SeamanAssignments.FullHashes
             };
             return content;
         }
 
         public override async IAsyncEnumerable<IHashableObject> GetChildObjects()
         {
-            var assignments = this.SeamanAssignments ?? new List<LazySeamanAssignment>();
+            var assignments = this.SeamanAssignments ?? new HashableList<LazySeamanAssignment>(this.Repository);
             foreach (var assignment in assignments)
             {
                 yield return await Task.FromResult(assignment);

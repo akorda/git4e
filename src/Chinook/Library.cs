@@ -15,24 +15,26 @@ namespace Chinook
         public class LibraryContent : IContent
         {
             [ProtoMember(1)]
+            public string ArtistsHash { get; set; }
+            [ProtoMember(2)]
             public string[] ArtistFullHashes { get; set; }
 
             public Task<IHashableObject> ToHashableObjectAsync(string hash, IRepository repository, CancellationToken cancellationToken = default)
             {
                 var artists =
-                    this.ArtistFullHashes
+                    this.ArtistFullHashes?
                     .Select(artistHash => new LazyArtist(repository, artistHash))
-                    .ToList();
+                    ?? new LazyArtist[0];
                 var library = new Library(repository, hash)
                 {
-                    Artists = artists
+                    Artists = new HashableList<LazyArtist>(repository, artists, this.ArtistsHash)
                 };
                 return Task.FromResult(library as IHashableObject);
             }
         }
 
-        List<LazyArtist> _Artists;
-        public List<LazyArtist> Artists
+        HashableList<LazyArtist> _Artists;
+        public HashableList<LazyArtist> Artists
         {
             get => _Artists;
             set
@@ -52,13 +54,13 @@ namespace Chinook
 
         protected override object GetContent()
         {
-            var artistFullHashes = this.Artists?
-                //.OrderBy(artist => artist.HashIncludeProperty1)
-                .Select(artist => artist.FullHash)
-                .ToArray();
+            if (this.Artists == null)
+                this.Artists = new HashableList<LazyArtist>(this.Repository);
+
             var content = new LibraryContent
             {
-                ArtistFullHashes = artistFullHashes
+                ArtistsHash = this.Artists.Hash,
+                ArtistFullHashes = this.Artists.FullHashes
             };
             return content;
         }

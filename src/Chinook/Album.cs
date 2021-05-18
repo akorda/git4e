@@ -19,19 +19,21 @@ namespace Chinook
             [ProtoMember(2)]
             public string Title { get; set; }
             [ProtoMember(3)]
+            public string TracksHash { get; set; }
+            [ProtoMember(4)]
             public string[] TrackFullHashes { get; set; }
 
             public Task<IHashableObject> ToHashableObjectAsync(string hash, IRepository repository, CancellationToken cancellationToken = default)
             {
                 var tracks =
-                    this.TrackFullHashes
+                    this.TrackFullHashes?
                     .Select(posHash => new LazyTrack(repository, posHash))
-                    .ToList();
+                    ?? new LazyTrack[0];
                 var album = new Album(repository, hash)
                 {
                     AlbumId = this.AlbumId,
                     Title = this.Title,
-                    Tracks = tracks
+                    Tracks = new HashableList<LazyTrack>(repository, tracks, this.TracksHash)
                 };
                 return Task.FromResult(album as IHashableObject);
             }
@@ -65,8 +67,8 @@ namespace Chinook
             }
         }
 
-        List<LazyTrack> _Tracks;
-        public List<LazyTrack> Tracks
+        HashableList<LazyTrack> _Tracks;
+        public HashableList<LazyTrack> Tracks
         {
             get => _Tracks;
             set
@@ -94,22 +96,22 @@ namespace Chinook
 
         protected override object GetContent()
         {
-            var trackFullHashes = this.Tracks?
-                //.OrderBy(t => t.HashIncludeProperty1)
-                .Select(t => t.FullHash)
-                .ToArray();
+            if (this.Tracks == null)
+                this.Tracks = new HashableList<LazyTrack>(this.Repository);
+
             var content = new AlbumContent
             {
                 AlbumId = this.AlbumId,
                 Title = this.Title,
-                TrackFullHashes = trackFullHashes
+                TracksHash = this.Tracks.Hash,
+                TrackFullHashes = this.Tracks.FullHashes
             };
             return content;
         }
 
         public override async IAsyncEnumerable<IHashableObject> GetChildObjects()
         {
-            var tracks = this.Tracks ?? new List<LazyTrack>();
+            var tracks = this.Tracks ?? new HashableList<LazyTrack>(this.Repository);
             foreach (var track in tracks)
             {
                 yield return await Task.FromResult(track);
@@ -120,9 +122,7 @@ namespace Chinook
     }
 
     /// <summary>
-    /// Album Hash with the following included properties:
-    /// 1. AlbumId
-    /// 2. Album Name
+    /// Album Hash with NO included properties:
     /// </summary>
     public class LazyAlbum : LazyHashableObject
     {

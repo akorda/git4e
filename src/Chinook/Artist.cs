@@ -19,6 +19,8 @@ namespace Chinook
             [ProtoMember(2)]
             public string Name { get; set; }
             [ProtoMember(3)]
+            public string AlbumsHash { get; set; }
+            [ProtoMember(4)]
             public string[] AlbumFullHashes { get; set; }
 
             public Task<IHashableObject> ToHashableObjectAsync(string hash, IRepository repository, CancellationToken cancellationToken = default)
@@ -26,12 +28,12 @@ namespace Chinook
                 var albums =
                     this.AlbumFullHashes?
                     .Select(posHash => new LazyAlbum(repository, posHash))
-                    .ToList() ?? new List<LazyAlbum>();
+                    ?? new LazyAlbum[0];
                 var artist = new Artist(repository, hash)
                 {
                     ArtistId = this.ArtistId,
                     Name = this.Name,
-                    Albums = albums
+                    Albums = new HashableList<LazyAlbum>(repository, albums, this.AlbumsHash)
                 };
                 return Task.FromResult(artist as IHashableObject);
             }
@@ -65,8 +67,8 @@ namespace Chinook
             }
         }
 
-        List<LazyAlbum> _Albums;
-        public List<LazyAlbum> Albums
+        HashableList<LazyAlbum> _Albums;
+        public HashableList<LazyAlbum> Albums
         {
             get => _Albums;
             set
@@ -91,22 +93,22 @@ namespace Chinook
 
         protected override object GetContent()
         {
-            var albumFullHashes = this.Albums?
-                //.OrderBy(album => album.HashIncludeProperty1)
-                .Select(album => album.FullHash)
-                .ToArray();
+            if (this.Albums == null)
+                this.Albums = new HashableList<LazyAlbum>(this.Repository);
+
             var content = new ArtistContent
             {
                 ArtistId = this.ArtistId,
                 Name = this.Name,
-                AlbumFullHashes = albumFullHashes
+                AlbumsHash = this.Albums.Hash,
+                AlbumFullHashes = this.Albums.FullHashes
             };
             return content;
         }
 
         public override async IAsyncEnumerable<IHashableObject> GetChildObjects()
         {
-            var albums = this.Albums ?? new List<LazyAlbum>();
+            var albums = this.Albums ?? new HashableList<LazyAlbum>(this.Repository);
             foreach (var album in albums)
             {
                 yield return await Task.FromResult(album);
