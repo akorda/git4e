@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -112,6 +114,22 @@ namespace Git4e
             var commitContent = (await this.ObjectStore.GetObjectContentAsync(parentCommitHash, contentType, cancellationToken)) as IContent;
             var parentCommit = (await commitContent.ToHashableObjectAsync(parentCommitHash, this, cancellationToken)) as ICommit;
             return parentCommit;
+        }
+
+        public async IAsyncEnumerable<ICommit> GetCommitHistoryAsync([EnumeratorCancellation]CancellationToken cancellationToken = default)
+        {
+            var commitHash = this.HeadCommitHash;
+            while (commitHash != null)
+            {
+                var contentTypeName = await this.ObjectStore.GetObjectTypeAsync(commitHash, cancellationToken);
+                var contentType = this.ContentTypeResolver.ResolveContentType(contentTypeName);
+                var objectContent = await this.ObjectStore.GetObjectContentAsync(commitHash, contentType, cancellationToken);
+                var commitContent = objectContent as IContent;
+                var commit = (await commitContent.ToHashableObjectAsync(commitHash, this, cancellationToken)) as ICommit;
+                yield return commit;
+
+                commitHash = commit.ParentCommitHashes?.FirstOrDefault();
+            }
         }
     }
 }

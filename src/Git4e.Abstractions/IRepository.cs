@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,5 +19,6 @@ namespace Git4e
         Task CreateBranchAsync(string branch, bool checkout, CancellationToken cancellationToken = default);
         Task InitializeAsync(CancellationToken cancellationToken = default);
         Task<ICommit> GetParentCommitAsync(ICommit commit, CancellationToken cancellationToken = default);
+        IAsyncEnumerable<ICommit> GetCommitHistoryAsync(CancellationToken cancellationToken = default);
     }
 }

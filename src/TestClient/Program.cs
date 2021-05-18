@@ -51,6 +51,7 @@ namespace TestClient
             //commitHash = await UseCase1(configuration, serviceProvider, repository, cancellationToken);
             //commitHash = await UseCase2(configuration, serviceProvider, objectStore, repository, cancellationToken);
 
+            await ShowRepoLog(repository, cancellationToken);
             await Compare2LastCommits(repository, commitsComparer, commitsComparerVisitor, cancellationToken);
 
             //load a full-object from hash
@@ -73,6 +74,39 @@ namespace TestClient
                     parentCommit = (await commitContent.ToHashableObjectAsync(commitHash, repository, cancellationToken)) as Commit;
                 }
             }
+        }
+
+        private static async Task ShowRepoLog(IRepository repository, CancellationToken cancellationToken)
+        {
+            await repository.CheckoutAsync("main", cancellationToken);
+            await foreach (var commit in repository.GetCommitHistoryAsync(cancellationToken))
+            {
+                ShowCommitLog(commit);
+            }
+        }
+
+        private static void ShowCommitLog(ICommit commit)
+        {
+            Console.WriteLine($"commit {commit.Hash}");
+            Console.WriteLine($"Author: {commit.Author}");
+            Console.WriteLine($"Date:   {commit.When}");
+            Console.WriteLine();
+
+            var messageLines = ("" + commit.Message).Split(Environment.NewLine).AsEnumerable();
+            if (!messageLines.Any())
+                return;
+
+            Console.WriteLine("\t" + messageLines.First());
+            Console.WriteLine();
+            messageLines = messageLines.Skip(1);
+            if (!messageLines.Any())
+                return;
+
+            foreach (var line in messageLines)
+            {
+                Console.WriteLine("\t" + line);
+            }
+            Console.WriteLine();
         }
 
         private static async Task Compare2LastCommits(IRepository repository, ICommitsComparer commitsComparer, ICommitsComparerVisitor commitsComparerVisitor, CancellationToken cancellationToken)
@@ -127,7 +161,16 @@ namespace TestClient
             var data = new Chinook.DataLoader();
             await data.LoadDataAsync(connectionString, repository, cancellationToken);
 
-            var commitHash = await repository.CommitAsync("akorda", DateTime.Now, "Fix albums", data.Library, cancellationToken);
+            var message = @"This is a multiline commit message
+Lorem Ipsum is simply dummy text of the printing and typesetting 
+industry. Lorem Ipsum has been the industry's standard dummy 
+text ever since the 1500s, when an unknown printer took a galley 
+of type and scrambled it to make a type specimen book. 
+
+- It has survived not only five centuries, 
+- but also the leap into electronic typesetting, 
+- remaining essentially unchanged.";
+            var commitHash = await repository.CommitAsync("akorda", DateTime.Now, message, data.Library, cancellationToken);
             return commitHash;
         }
 
