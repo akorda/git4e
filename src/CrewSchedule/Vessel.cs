@@ -130,6 +130,8 @@ namespace CrewSchedule
         {
         }
 
+        public new Vessel GetValue() => base.GetValue<Vessel>();
+
         public string VesselCode => this.UniqueId;
 
         public string Name => this.IncludedProperties[0];

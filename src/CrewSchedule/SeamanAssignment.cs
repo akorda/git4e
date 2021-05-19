@@ -168,6 +168,8 @@ namespace CrewSchedule
         {
         }
 
+        public new SeamanAssignment GetValue() => base.GetValue<SeamanAssignment>();
+
         public string SeamanAssignmentId => this.UniqueId;
 
         public string SeamanCode => this.IncludedProperties[0];

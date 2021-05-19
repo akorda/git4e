@@ -33,6 +33,11 @@ namespace Git4e
             return (TReal)this.Value.Result;
         }
 
+        public IHashableObject GetValue()
+        {
+            return this.Value.Result;
+        }
+
         public abstract void MarkAsDirty();
         public abstract Task SerializeContentAsync(Stream stream, CancellationToken cancellationToken = default);
     }

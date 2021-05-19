@@ -221,17 +221,17 @@ of type and scrambled it to make a type specimen book.
                 return null;
 
             var branch = "main";
-            //load ZV and change a vessel property
+
             var commit = await repository.CheckoutAsync(branch, cancellationToken);
-            var root = commit.Root as LazyPlan;
-            if (root.PlanVersionId != "1")
+            var lazyPlan = commit.Root as LazyPlan;
+            if (lazyPlan.PlanVersionId != "1")
                 return null;
 
-            //var plan = (await commit.Root) as Plan;
-            var plan = commit.Root.GetValue<Plan>();
+            var plan = lazyPlan.GetValue();
 
+            //load ZV and change a vessel property
             var lazyVessel = plan.Vessels.FirstOrDefault(v => v.VesselCode == "ZV");
-            lazyVessel.GetValue<Vessel>().Name += "I";
+            lazyVessel.GetValue().Name += "I";
             plan.MarkAsDirty();
 
             var planHash = plan.FullHash;
@@ -240,16 +240,18 @@ of type and scrambled it to make a type specimen book.
             lazyVessel = plan.Vessels.FirstOrDefault(v => v.VesselCode == "UU");
             //await Task.WhenAll(lazyVessel.FinalValue.Positions.Select(p => p.Value));
 
-            var lazyPositions = lazyVessel.GetValue<Vessel>().Positions.Where(p => p.DutyRankCode == "OS");
+            var lazyPositions = lazyVessel.GetValue().Positions.Where(p => p.DutyRankCode == "OS");
 
             foreach (var lazyPosition in lazyPositions.ToArray())
             {
-                lazyPosition.GetValue<VesselPosition>().PositionNo++;
+                var position = lazyPosition.GetValue();
 
-                var asns = lazyPosition.GetValue<VesselPosition>().SeamanAssignments.Where(asn => asn.SeamanCode == "120238").ToArray();
+                position.PositionNo++;
+
+                var asns = position.SeamanAssignments.Where(asn => asn.SeamanCode == "120238").ToArray();
                 foreach (var asn in asns)
                 {
-                    asn.GetValue<SeamanAssignment>().StartOverlap--;
+                    asn.GetValue().StartOverlap--;
                 }
             }
             lazyVessel.MarkAsDirty();
@@ -257,7 +259,7 @@ of type and scrambled it to make a type specimen book.
 
             planHash = plan.FullHash;
 
-            var lazyPlan = new LazyPlan(plan);
+            lazyPlan = new LazyPlan(plan);
             var commitHash = await repository.CommitAsync("akorda", DateTime.Now, "Change Vessel Name", lazyPlan, cancellationToken);
             return commitHash;
         }

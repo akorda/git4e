@@ -148,6 +148,8 @@ namespace CrewSchedule
         {
         }
 
+        public new VesselPosition GetValue() => base.GetValue<VesselPosition>();
+
         public string DutyRankCode => this.IncludedProperties[0];
 
         private int? _PositionNo;
