@@ -28,7 +28,7 @@ namespace CrewSchedule
             {
                 var positions =
                     this.PositionFullHashes?
-                    .Select(posHash => new LazyVesselPosition(repository, posHash))
+                    .Select(positionFullHash => new LazyVesselPosition(repository, positionFullHash))
                     ?? new LazyVesselPosition[0];
                 var vessel = new Vessel(repository, hash)
                 {

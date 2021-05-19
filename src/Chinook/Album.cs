@@ -27,7 +27,7 @@ namespace Chinook
             {
                 var tracks =
                     this.TrackFullHashes?
-                    .Select(posHash => new LazyTrack(repository, posHash))
+                    .Select(trackFullHash => new LazyTrack(repository, trackFullHash))
                     ?? new LazyTrack[0];
                 var album = new Album(repository, hash)
                 {

@@ -29,7 +29,7 @@ namespace CrewSchedule
             public Task<IHashableObject> ToHashableObjectAsync(string hash, IRepository repository, CancellationToken cancellationToken = default)
             {
                 var seamanAssignments = this.SeamanAssignmentFullHashes?
-                    .Select(asnHash => new LazySeamanAssignment(repository, asnHash))
+                    .Select(seamanAssignmentFullHash => new LazySeamanAssignment(repository, seamanAssignmentFullHash))
                     ?? new LazySeamanAssignment[0];
                 var position = new VesselPosition(repository, hash)
                 {

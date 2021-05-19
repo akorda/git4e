@@ -27,7 +27,7 @@ namespace Chinook
             {
                 var albums =
                     this.AlbumFullHashes?
-                    .Select(posHash => new LazyAlbum(repository, posHash))
+                    .Select(albumFullHash => new LazyAlbum(repository, albumFullHash))
                     ?? new LazyAlbum[0];
                 var artist = new Artist(repository, hash)
                 {

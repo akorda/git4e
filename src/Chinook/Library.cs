@@ -23,7 +23,7 @@ namespace Chinook
             {
                 var artists =
                     this.ArtistFullHashes?
-                    .Select(artistHash => new LazyArtist(repository, artistHash))
+                    .Select(artistFullHash => new LazyArtist(repository, artistFullHash))
                     ?? new LazyArtist[0];
                 var library = new Library(repository, hash)
                 {

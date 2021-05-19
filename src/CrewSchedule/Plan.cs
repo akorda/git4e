@@ -25,7 +25,7 @@ namespace CrewSchedule
             {
                 var vessels =
                     this.VesselFullHashes?
-                    .Select(vesselHash => new LazyVessel(repository, vesselHash))
+                    .Select(vesselFullHash => new LazyVessel(repository, vesselFullHash))
                     ?? new LazyVessel[0];
                 var plan = new Plan(repository, hash)
                 {
