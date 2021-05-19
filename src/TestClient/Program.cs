@@ -113,7 +113,7 @@ namespace TestClient
         {
             var branch = "main";
             var lastCommit = await repository.CheckoutAsync(branch, cancellationToken);
-            var previousCommit = await repository.GetParentCommitAsync(lastCommit, cancellationToken);
+            var previousCommit = await repository.GetParentCommitAsync(lastCommit, 1, cancellationToken);
 
             await commitsComparer.CompareCommits(lastCommit, previousCommit, commitsComparerVisitor, cancellationToken);
         }

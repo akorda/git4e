@@ -5,6 +5,7 @@
         Ok,
         NotFound,
         Exists,
-        InvalidContentType
+        InvalidContentType,
+        InvalidCommitParent
     }
 }

@@ -96,19 +96,31 @@ namespace Git4e
             await this.ObjectStore.InitializeAsync(cancellationToken);
         }
 
-        public async Task<ICommit> GetParentCommitAsync(ICommit commit, CancellationToken cancellationToken = default)
+        /// <inheritdoc />
+        public async Task<ICommit> GetParentCommitAsync(ICommit commit, int parentIndex = 1, CancellationToken cancellationToken = default)
         {
             if (commit is null)
             {
                 throw new ArgumentNullException(nameof(commit));
             }
 
-            var parentCommitHash = commit.ParentCommitHashes?.FirstOrDefault();
-            if (parentCommitHash == null)
+            if (parentIndex <= 0)
             {
+                throw new ArgumentException($"{nameof(parentIndex)} must be equal or greater than 1");
+            }
+
+            if (commit.ParentCommitHashes == null)
+            {
+                //todo: is this correct? should we throw an error?
                 return null;
             }
 
+            if (parentIndex > commit.ParentCommitHashes.Length)
+            {
+                throw new Git4eException(Git4eErrorCode.InvalidCommitParent, $"Commit parent #{parentIndex} does not exist. Commit '{commit.Hash}' has only {commit.ParentCommitHashes} parents");
+            }
+
+            var parentCommitHash = commit.ParentCommitHashes[parentIndex - 1];
             var contentTypeName = await this.ObjectStore.GetObjectTypeAsync(commit.Hash, cancellationToken);
             var contentType = this.ContentTypeResolver.ResolveContentType(contentTypeName);
             var commitContent = (await this.ObjectStore.GetObjectContentAsync(parentCommitHash, contentType, cancellationToken)) as IContent;
