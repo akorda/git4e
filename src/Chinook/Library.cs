@@ -92,6 +92,6 @@ namespace Chinook
         {
         }
 
-        public new Library GetValue() => base.GetValue<Library>();
+        public new Library LoadValue() => base.LoadValue<Library>();
     }
 }

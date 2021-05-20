@@ -16,8 +16,8 @@ namespace CrewSchedule
                 return;
             }
 
-            var plan1 = commit.Root.GetValue<Plan>();
-            var plan2 = prevCommit.Root.GetValue<Plan>();
+            var plan1 = commit.Root.LoadValue<Plan>();
+            var plan2 = prevCommit.Root.LoadValue<Plan>();
 
             //compare properties
             if (plan1.PlanVersionId != plan2.PlanVersionId)
@@ -41,7 +41,7 @@ namespace CrewSchedule
                     if (lv1.Hash != lv2.Hash)
                     {
                         Console.WriteLine($"Vessel '{lv1.Name}' ({lv1.VesselCode}) updated at commit '{commit.Hash}'");
-                        await CompareVessels(commit, lv1.GetValue<Vessel>(), lv2.GetValue<Vessel>(), cancellationToken);
+                        await CompareVessels(commit, lv1.LoadValue<Vessel>(), lv2.LoadValue<Vessel>(), cancellationToken);
                         continue;
                     }
                 }
@@ -83,7 +83,7 @@ namespace CrewSchedule
                     if (al1.Hash != al2.Hash)
                     {
                         Console.WriteLine($"Position '{al1.UniqueId}' ({al1.UniqueId}) updated at commit '{commit.Hash}'");
-                        await ComparePositions(commit, al1.GetValue<VesselPosition>(), al2.GetValue<VesselPosition>(), cancellationToken);
+                        await ComparePositions(commit, al1.LoadValue<VesselPosition>(), al2.LoadValue<VesselPosition>(), cancellationToken);
                         continue;
                     }
                 }
@@ -120,7 +120,7 @@ namespace CrewSchedule
                     if (al1.Hash != al2.Hash)
                     {
                         Console.WriteLine($"SeamanAssignment '{al1.UniqueId}' ({al1.UniqueId}) updated at commit '{commit.Hash}'");
-                        await CompareSeamanAssignments(commit, al1.GetValue<SeamanAssignment>(), al2.GetValue<SeamanAssignment>(), cancellationToken);
+                        await CompareSeamanAssignments(commit, al1.LoadValue<SeamanAssignment>(), al2.LoadValue<SeamanAssignment>(), cancellationToken);
                         continue;
                     }
                 }

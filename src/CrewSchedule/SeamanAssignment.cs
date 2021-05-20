@@ -164,11 +164,11 @@ namespace CrewSchedule
         }
 
         public LazySeamanAssignment(SeamanAssignment asn)
-            : base(asn, asn.Seaman?.GetValue<Seaman>().SeamanCode)
+            : base(asn, asn.Seaman?.LoadValue<Seaman>().SeamanCode)
         {
         }
 
-        public new SeamanAssignment GetValue() => base.GetValue<SeamanAssignment>();
+        public new SeamanAssignment LoadValue() => base.LoadValue<SeamanAssignment>();
 
         public string SeamanAssignmentId => this.UniqueId;
 

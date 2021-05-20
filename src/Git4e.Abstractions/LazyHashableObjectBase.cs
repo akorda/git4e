@@ -27,13 +27,13 @@ namespace Git4e
         public TaskAwaiter<IHashableObject> GetAwaiter() => Value.GetAwaiter();
         public abstract IAsyncEnumerable<IHashableObject> GetChildObjects();
 
-        public TReal GetValue<TReal>()
+        public TReal LoadValue<TReal>()
             where TReal: IHashableObject
         {
             return (TReal)this.Value.Result;
         }
 
-        public IHashableObject GetValue()
+        public IHashableObject LoadValue()
         {
             return this.Value.Result;
         }
