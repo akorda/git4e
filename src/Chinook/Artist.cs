@@ -120,8 +120,7 @@ namespace Chinook
 
     /// <summary>
     /// Artist Hash with the following included properties:
-    /// 1. ArtistId
-    /// 2. Artist Name
+    /// 1. Artist Name
     /// </summary>
     public class LazyArtist : LazyHashableObject
     {

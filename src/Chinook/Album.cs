@@ -122,7 +122,7 @@ namespace Chinook
     }
 
     /// <summary>
-    /// Album Hash with NO included properties:
+    /// Album Hash with no included properties
     /// </summary>
     public class LazyAlbum : LazyHashableObject
     {

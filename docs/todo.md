@@ -76,7 +76,7 @@ Find a way to create a generic implementation of the `ICommitsComparer` interfac
 
 The generic implementation could use this metadata to find creations/updates/deletions etc
 
-### Remove GetValue<> method calls
+### Remove GetValue<> method calls 💡 CLOSED
 
 Add a new `GetValue()` method to each LazyXYZ class and use the new method.
 For example see:

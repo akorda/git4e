@@ -96,8 +96,7 @@ namespace CrewSchedule
     }
 
     /// <summary>
-    /// Plan Hash with the following included properties:
-    /// 1. PlanVersionId
+    /// Plan Hash with the no included properties
     /// </summary>
     public class LazyPlan : LazyHashableObject
     {
