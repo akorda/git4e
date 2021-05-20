@@ -34,6 +34,8 @@ namespace Chinook
         }
 
         HashableList<LazyArtist> _Artists;
+
+        [ContentCollection]
         public HashableList<LazyArtist> Artists
         {
             get => _Artists;

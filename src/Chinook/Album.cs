@@ -40,6 +40,8 @@ namespace Chinook
         }
 
         int _AlbumId;
+
+        [ContentProperty]
         public int AlbumId
         {
             get => _AlbumId;
@@ -54,6 +56,8 @@ namespace Chinook
         }
 
         string _Title;
+
+        [ContentProperty]
         public string Title
         {
             get => _Title;
@@ -68,6 +72,8 @@ namespace Chinook
         }
 
         HashableList<LazyTrack> _Tracks;
+
+        [ContentCollection]
         public HashableList<LazyTrack> Tracks
         {
             get => _Tracks;

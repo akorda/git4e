@@ -29,6 +29,8 @@ namespace Chinook
         }
 
         string _MediaTypeId;
+
+        [ContentProperty]
         public string MediaTypeId
         {
             get => _MediaTypeId;
@@ -41,7 +43,10 @@ namespace Chinook
                 }
             }
         }
+
         string _Name;
+
+        [ContentProperty]
         public string Name
         {
             get => _Name;

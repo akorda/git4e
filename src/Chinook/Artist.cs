@@ -40,6 +40,8 @@ namespace Chinook
         }
 
         int _ArtistId;
+
+        [ContentProperty]
         public int ArtistId
         {
             get => _ArtistId;
@@ -54,6 +56,8 @@ namespace Chinook
         }
 
         string _Name;
+
+        [ContentProperty]
         public string Name
         {
             get => _Name;
@@ -68,6 +72,8 @@ namespace Chinook
         }
 
         HashableList<LazyAlbum> _Albums;
+
+        [ContentCollection]
         public HashableList<LazyAlbum> Albums
         {
             get => _Albums;

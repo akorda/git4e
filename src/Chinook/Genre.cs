@@ -29,6 +29,8 @@ namespace Chinook
         }
 
         string _GenreId;
+
+        [ContentProperty]
         public string GenreId
         {
             get => _GenreId;
@@ -41,7 +43,10 @@ namespace Chinook
                 }
             }
         }
+
         string _Name;
+
+        [ContentProperty]
         public string Name
         {
             get => _Name;

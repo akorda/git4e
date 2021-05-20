@@ -48,6 +48,8 @@ namespace Chinook
         }
 
         int _TrackId;
+
+        [ContentProperty]
         public int TrackId
         {
             get => _TrackId;
@@ -62,6 +64,8 @@ namespace Chinook
         }
 
         string _Name;
+
+        [ContentProperty]
         public string Name
         {
             get => _Name;
@@ -76,6 +80,8 @@ namespace Chinook
         }
 
         string _Composer;
+
+        [ContentProperty]
         public string Composer
         {
             get => _Composer;
@@ -90,6 +96,8 @@ namespace Chinook
         }
 
         int _Milliseconds;
+
+        [ContentProperty]
         public int Milliseconds
         {
             get => _Milliseconds;
@@ -104,6 +112,8 @@ namespace Chinook
         }
 
         int _Bytes;
+
+        [ContentProperty]
         public int Bytes
         {
             get => _Bytes;
@@ -118,6 +128,8 @@ namespace Chinook
         }
 
         decimal _UnitPrice;
+
+        [ContentProperty]
         public decimal UnitPrice
         {
             get => _UnitPrice;
@@ -137,11 +149,13 @@ namespace Chinook
         //do not serialize
         internal string GenreId { get; set; }
 
+        [ContentProperty]
         public LazyHashableObject Genre { get; set; }
 
         //do not serialize
         internal string MediaTypeId { get; set; }
 
+        [ContentProperty]
         public LazyHashableObject MediaType { get; set; }
 
         public Track()
