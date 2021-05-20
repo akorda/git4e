@@ -135,6 +135,8 @@ namespace Chinook
         {
         }
 
+        public new Artist GetValue() => base.GetValue<Artist>();
+
         private int? _ArtistId;
         public int ArtistId
         {

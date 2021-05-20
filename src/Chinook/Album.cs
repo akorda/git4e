@@ -136,6 +136,8 @@ namespace Chinook
         {
         }
 
+        public new Album GetValue() => base.GetValue<Album>();
+
         private int? _AlbumId;
         public int AlbumId
         {
