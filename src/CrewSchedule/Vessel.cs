@@ -41,6 +41,8 @@ namespace CrewSchedule
         }
 
         string _VesselCode;
+
+        [ContentProperty]
         public string VesselCode
         {
             get => _VesselCode;
@@ -55,6 +57,8 @@ namespace CrewSchedule
         }
 
         string _Name;
+
+        [ContentProperty]
         public string Name
         {
             get => _Name;
@@ -69,6 +73,8 @@ namespace CrewSchedule
         }
 
         HashableList<LazyVesselPosition> _Positions;
+
+        [ContentCollection]
         public HashableList<LazyVesselPosition> Positions
         {
             get => _Positions;

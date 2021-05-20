@@ -43,6 +43,8 @@ namespace CrewSchedule
         }
 
         string _SeamanAssignmentId;
+
+        [ContentProperty]
         public string SeamanAssignmentId
         {
             get => _SeamanAssignmentId;
@@ -57,6 +59,8 @@ namespace CrewSchedule
         }
 
         int _StartOverlap;
+
+        [ContentProperty]
         public int StartOverlap
         {
             get => _StartOverlap;
@@ -71,6 +75,8 @@ namespace CrewSchedule
         }
 
         int? _StartDuties;
+
+        [ContentProperty]
         public int? StartDuties
         {
             get => _StartDuties;
@@ -85,6 +91,8 @@ namespace CrewSchedule
         }
 
         int? _EndDuties;
+
+        [ContentProperty]
         public int? EndDuties
         {
             get => _EndDuties;
@@ -99,6 +107,8 @@ namespace CrewSchedule
         }
 
         int _EndOverlap;
+
+        [ContentProperty]
         public int EndOverlap
         {
             get => _EndOverlap;
@@ -115,6 +125,7 @@ namespace CrewSchedule
         //do not serialize
         internal string SeamanCode { get; set; }
 
+        [ContentProperty]
         public LazyHashableObject Seaman { get; set; }
 
         //do not serialize

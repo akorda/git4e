@@ -37,6 +37,8 @@ namespace CrewSchedule
         }
 
         string _PlanVersionId;
+
+        [ContentProperty]
         public string PlanVersionId
         {
             get => _PlanVersionId;
@@ -51,6 +53,8 @@ namespace CrewSchedule
         }
 
         HashableList<LazyVessel> _Vessels;
+
+        [ContentCollection]
         public HashableList<LazyVessel> Vessels
         {
             get => _Vessels;

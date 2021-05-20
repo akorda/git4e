@@ -34,6 +34,8 @@ namespace CrewSchedule
         }
 
         string _SeamanCode;
+
+        [ContentProperty]
         public string SeamanCode
         {
             get => _SeamanCode;
@@ -48,6 +50,8 @@ namespace CrewSchedule
         }
 
         string _FirstName;
+
+        [ContentProperty]
         public string FirstName
         {
             get => _FirstName;
@@ -62,6 +66,8 @@ namespace CrewSchedule
         }
 
         string _LastName;
+
+        [ContentProperty]
         public string LastName
         {
             get => _LastName;
