@@ -29,7 +29,9 @@ Library
 - Stabilize the API
 - Add tests
   - Status update: some tests added
-- Add comments in code & documentation
+- Add comments in code
+- Create project documentation
+- Add logs
 - Version dlls & Publish nuget packages
 - Find a killer-app that proves the validity of git4e
 
@@ -48,4 +50,51 @@ Could we remove the use of 2 properties for storing HashableLists?
 public string AlbumsHash { get; set; }
 [ProtoMember(4)]
 public string[] AlbumFullHashes { get; set; }
+```
+
+### Use of IRootFromHashCreator
+
+Do we really have to live with the `IRootFromHashCreator` or we could remove it?
+
+### Easy switch between data sources
+
+Find a easy way to switch between CrewSchedule, Chinook or any other DataSource and Use Cases, e.g.
+
+- Use a separate class for each data source & create a separate `IServiceProvider`
+- Use different directory in `PhysicalFilesObjectStoreOptions`
+
+### Use of LazyHashableObjectBase
+
+Do we really have to live with the `LazyHashableObjectBase` or we could remove it?
+
+### Generic implementation of ICommitsComparer
+
+Find a way to create a generic implementation of the `ICommitsComparer` interface. Maybe we could add some `git4e` specific Attributes to content data, e.g.
+
+- [ContentProperty] for properties
+- [ContentCollection] for `HashableLists`
+
+The generic implementation could use this metadata to find creations/updates/deletions etc
+
+### Remove GetValue<> method calls
+
+Add a new `GetValue()` method to each LazyXYZ class and use the new method.
+For example see:
+
+```csharp
+public new Plan GetValue() => base.GetValue<Plan>();
+```
+
+Furthermore, we could rename these methods to `LoadValue` to imply that (probably) content loading will occur
+
+### Remove PKs from included properties documentation
+
+For example see:
+
+```csharp
+/// <summary>
+/// Plan Hash with the following included properties:
+/// 1. PlanVersionId
+/// </summary>
+public class LazyPlan : LazyHashableObject
 ```
