@@ -140,19 +140,19 @@ namespace TestClient
                     var artistId = lazyArtist.ArtistId;
                     var artistName = lazyArtist.Name;
 
-                    var artist = lazyArtist.GetValue<Artist>();
+                    var artist = lazyArtist.GetValue();
                     foreach (var lazyAlbum in artist.Albums)
                     {
                         var albumId = lazyAlbum.AlbumId;
 
-                        var album = lazyAlbum.GetValue<Album>();
+                        var album = lazyAlbum.GetValue();
                         foreach (var lazyTrack in album.Tracks)
                         {
                             var trackId = lazyTrack.TrackId;
                             var genreId = lazyTrack.GenreId;
                             var mediaTypeId = lazyTrack.MediaTypeId;
 
-                            var track = lazyTrack.GetValue<Track>();
+                            var track = lazyTrack.GetValue();
                         }
                     }
                 }

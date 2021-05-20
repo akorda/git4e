@@ -42,7 +42,7 @@ namespace Chinook
                         if (visitor != null)
                             await visitor.OnItemUpdatedAsync(commit, la1, la2, cancellationToken);
 
-                        await CompareArtists(commit, la1.GetValue<Artist>(), la2.GetValue<Artist>(), visitor, cancellationToken);
+                        await CompareArtists(commit, la1.GetValue(), la2.GetValue(), visitor, cancellationToken);
                         continue;
                     }
                 }
@@ -94,7 +94,7 @@ namespace Chinook
                         if (visitor != null)
                             await visitor.OnItemUpdatedAsync(commit, al1, al2, cancellationToken);
 
-                        await CompareAlbums(commit, al1.GetValue<Album>(), al2.GetValue<Album>(), visitor, cancellationToken);
+                        await CompareAlbums(commit, al1.GetValue(), al2.GetValue(), visitor, cancellationToken);
                         continue;
                     }
                 }
@@ -146,7 +146,7 @@ namespace Chinook
                         if (visitor != null)
                             await visitor.OnItemUpdatedAsync(commit, tr1, tr2, cancellationToken);
 
-                        await CompareTracks(commit, tr1.GetValue<Track>(), tr2.GetValue<Track>(), visitor, cancellationToken);
+                        await CompareTracks(commit, tr1.GetValue(), tr2.GetValue(), visitor, cancellationToken);
                         continue;
                     }
                 }

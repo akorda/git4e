@@ -202,6 +202,8 @@ namespace Chinook
         {
         }
 
+        public new Track GetValue() => base.GetValue<Track>();
+
         private int? _TrackId;
         public int TrackId
         {
