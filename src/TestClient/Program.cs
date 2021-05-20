@@ -134,25 +134,25 @@ namespace TestClient
             var commit = await repository.CheckoutAsync(branch, cancellationToken);
             if (false && commit != null)
             {
-                var library = commit.Root.GetValue<Library>();
+                var library = commit.Root.LoadValue<Library>();
                 foreach (var lazyArtist in library.Artists)
                 {
                     var artistId = lazyArtist.ArtistId;
                     var artistName = lazyArtist.Name;
 
-                    var artist = lazyArtist.GetValue();
+                    var artist = lazyArtist.LoadValue();
                     foreach (var lazyAlbum in artist.Albums)
                     {
                         var albumId = lazyAlbum.AlbumId;
 
-                        var album = lazyAlbum.GetValue();
+                        var album = lazyAlbum.LoadValue();
                         foreach (var lazyTrack in album.Tracks)
                         {
                             var trackId = lazyTrack.TrackId;
                             var genreId = lazyTrack.GenreId;
                             var mediaTypeId = lazyTrack.MediaTypeId;
 
-                            var track = lazyTrack.GetValue();
+                            var track = lazyTrack.LoadValue();
                         }
                     }
                 }
@@ -227,11 +227,11 @@ of type and scrambled it to make a type specimen book.
             if (lazyPlan.PlanVersionId != "1")
                 return null;
 
-            var plan = lazyPlan.GetValue();
+            var plan = lazyPlan.LoadValue();
 
             //load ZV and change a vessel property
             var lazyVessel = plan.Vessels.FirstOrDefault(v => v.VesselCode == "ZV");
-            lazyVessel.GetValue().Name += "I";
+            lazyVessel.LoadValue().Name += "I";
             plan.MarkAsDirty();
 
             var planHash = plan.FullHash;
@@ -240,18 +240,18 @@ of type and scrambled it to make a type specimen book.
             lazyVessel = plan.Vessels.FirstOrDefault(v => v.VesselCode == "UU");
             //await Task.WhenAll(lazyVessel.FinalValue.Positions.Select(p => p.Value));
 
-            var lazyPositions = lazyVessel.GetValue().Positions.Where(p => p.DutyRankCode == "OS");
+            var lazyPositions = lazyVessel.LoadValue().Positions.Where(p => p.DutyRankCode == "OS");
 
             foreach (var lazyPosition in lazyPositions.ToArray())
             {
-                var position = lazyPosition.GetValue();
+                var position = lazyPosition.LoadValue();
 
                 position.PositionNo++;
 
                 var asns = position.SeamanAssignments.Where(asn => asn.SeamanCode == "120238").ToArray();
                 foreach (var asn in asns)
                 {
-                    asn.GetValue().StartOverlap--;
+                    asn.LoadValue().StartOverlap--;
                 }
             }
             lazyVessel.MarkAsDirty();

@@ -111,7 +111,7 @@ namespace CrewSchedule
         {
         }
 
-        public new Plan GetValue() => base.GetValue<Plan>();
+        public new Plan LoadValue() => base.LoadValue<Plan>();
 
         public string PlanVersionId => this.IncludedProperties[0];
     }

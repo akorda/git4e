@@ -198,11 +198,11 @@ namespace Chinook
         }
 
         public LazyTrack(Track track)
-            : base(track, track.Genre?.GetValue<Genre>().GenreId, track.MediaType?.GetValue<MediaType>().MediaTypeId)
+            : base(track, track.Genre?.LoadValue<Genre>().GenreId, track.MediaType?.LoadValue<MediaType>().MediaTypeId)
         {
         }
 
-        public new Track GetValue() => base.GetValue<Track>();
+        public new Track LoadValue() => base.LoadValue<Track>();
 
         private int? _TrackId;
         public int TrackId

@@ -16,8 +16,8 @@ namespace Chinook
                 return;
             }
 
-            var lib1 = commit.Root.GetValue<Library>();
-            var lib2 = prevCommit.Root.GetValue<Library>();
+            var lib1 = commit.Root.LoadValue<Library>();
+            var lib2 = prevCommit.Root.LoadValue<Library>();
 
             //first compare collections hashes
             if (lib1.Artists.Hash != lib2.Artists.Hash)
@@ -42,7 +42,7 @@ namespace Chinook
                         if (visitor != null)
                             await visitor.OnItemUpdatedAsync(commit, la1, la2, cancellationToken);
 
-                        await CompareArtists(commit, la1.GetValue(), la2.GetValue(), visitor, cancellationToken);
+                        await CompareArtists(commit, la1.LoadValue(), la2.LoadValue(), visitor, cancellationToken);
                         continue;
                     }
                 }
@@ -94,7 +94,7 @@ namespace Chinook
                         if (visitor != null)
                             await visitor.OnItemUpdatedAsync(commit, al1, al2, cancellationToken);
 
-                        await CompareAlbums(commit, al1.GetValue(), al2.GetValue(), visitor, cancellationToken);
+                        await CompareAlbums(commit, al1.LoadValue(), al2.LoadValue(), visitor, cancellationToken);
                         continue;
                     }
                 }
@@ -146,7 +146,7 @@ namespace Chinook
                         if (visitor != null)
                             await visitor.OnItemUpdatedAsync(commit, tr1, tr2, cancellationToken);
 
-                        await CompareTracks(commit, tr1.GetValue(), tr2.GetValue(), visitor, cancellationToken);
+                        await CompareTracks(commit, tr1.LoadValue(), tr2.LoadValue(), visitor, cancellationToken);
                         continue;
                     }
                 }
