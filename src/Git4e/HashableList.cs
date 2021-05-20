@@ -4,10 +4,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Git4e
 {
-    public class HashableList<T> : SortedSet<T>
+    public class HashableList<T> : SortedSet<T>, IHashableList
         where T : IHashableObject
     {
         private class HashableObjectComparer : IComparer<T>
@@ -73,13 +74,19 @@ namespace Git4e
             _FullHashes = null;
         }
 
+        public IEnumerable<IHashableObject> GetItems()
+        {
+            var collection = this.Cast<IHashableObject>();
+            return collection;
+        }
+
         public string Hash
         {
             get
             {
                 if (_Hash == null)
                 {
-                    var hashes = this.Select(item => item.Hash);
+                    var hashes = (this as SortedSet<T>).Select(item => item.Hash);
                     var itemsHash = string.Join('|', hashes);
                     var itemHashesBytes = Encoding.UTF8.GetBytes(itemsHash);
                     using (var ms = new MemoryStream(itemHashesBytes))
@@ -97,7 +104,7 @@ namespace Git4e
             {
                 if (_FullHashes == null)
                 {
-                    _FullHashes = this.Select(item => item.FullHash).ToArray();
+                    _FullHashes = (this as SortedSet<T>).Select(item => item.FullHash).ToArray();
                 }
                 return _FullHashes;
             }

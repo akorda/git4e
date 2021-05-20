@@ -26,7 +26,7 @@ namespace Git4e
 
         public Task OnItemPropertyUpdatedAsync(ICommit commit, string propertyName, IHashableObject item1, IHashableObject item2, object propertyValue1, object propertyValue2, CancellationToken cancellationToken = default)
         {
-            Console.WriteLine($"Property {propertyName} of Item with {nameof(IHashableObject.Type)} '{item1.Type}', {nameof(IHashableObject.Hash)} '{item1.Hash}', {nameof(IHashableObject.UniqueId)} '{item1.UniqueId}' updated to item with {nameof(IHashableObject.Hash)} '{item2.Hash}', {nameof(IHashableObject.UniqueId)} '{item2.UniqueId} and values '{propertyValue1}' -> '{propertyValue2}' at commit '{commit.Hash}'");
+            Console.WriteLine($"Property '{propertyName}' of Item with {nameof(IHashableObject.Type)} '{item1.Type}', {nameof(IHashableObject.Hash)} '{item1.Hash}', {nameof(IHashableObject.UniqueId)} '{item1.UniqueId}' updated to item with {nameof(IHashableObject.Hash)} '{item2.Hash}', {nameof(IHashableObject.UniqueId)} '{item2.UniqueId} and values '{propertyValue1}' -> '{propertyValue2}' at commit '{commit.Hash}'");
             return Task.CompletedTask;
         }
 

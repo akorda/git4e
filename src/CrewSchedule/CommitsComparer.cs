@@ -8,7 +8,7 @@ namespace CrewSchedule
 {
     public class CommitsComparer : ICommitsComparer
     {
-        public async Task CompareCommits(ICommit commit, ICommit prevCommit, ICommitsComparerVisitor visitor, CancellationToken cancellationToken = default)
+        public async Task CompareCommitsAsync(ICommit commit, ICommit prevCommit, ICommitsComparerVisitor visitor, CancellationToken cancellationToken = default)
         {
             if (commit.Root.Hash == prevCommit.Root.Hash)
             {

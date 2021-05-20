@@ -67,7 +67,7 @@ Find a easy way to switch between CrewSchedule, Chinook or any other DataSource 
 
 Do we really have to live with the `LazyHashableObjectBase` or we could remove it?
 
-### Generic implementation of ICommitsComparer
+### Generic implementation of ICommitsComparer 💡 CLOSED
 
 Find a way to create a generic implementation of the `ICommitsComparer` interface. Maybe we could add some `git4e` specific Attributes to content data, e.g.
 
@@ -87,7 +87,7 @@ public new Plan GetValue() => base.GetValue<Plan>();
 
 Furthermore, we could rename these methods to `LoadValue` to imply that (probably) content loading will occur
 
-### Remove PKs from included properties documentation
+### Remove PKs from included properties documentation 💡 CLOSED
 
 For example see:
 

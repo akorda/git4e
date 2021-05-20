@@ -5,6 +5,6 @@ namespace Git4e
 {
     public interface ICommitsComparer
     {
-        Task CompareCommits(ICommit commit, ICommit prevCommit, ICommitsComparerVisitor visitor, CancellationToken cancellationToken = default);
+        Task CompareCommitsAsync(ICommit commit, ICommit prevCommit, ICommitsComparerVisitor visitor, CancellationToken cancellationToken = default);
     }
 }

@@ -115,7 +115,7 @@ namespace TestClient
             var lastCommit = await repository.CheckoutAsync(branch, cancellationToken);
             var previousCommit = await repository.GetParentCommitAsync(lastCommit, 1, cancellationToken);
 
-            await commitsComparer.CompareCommits(lastCommit, previousCommit, commitsComparerVisitor, cancellationToken);
+            await commitsComparer.CompareCommitsAsync(lastCommit, previousCommit, commitsComparerVisitor, cancellationToken);
         }
 
         private static IConfiguration GetConfiguration()
@@ -281,8 +281,9 @@ of type and scrambled it to make a type specimen book.
                 .AddSingleton<IObjectStore, PhysicalFilesObjectStore>()
                 .AddSingleton<IObjectLoader, ObjectLoader>()
                 .AddSingleton<ICommitsComparerVisitor, ConsoleCommitsComparerVisitor>()
+                .AddSingleton<ICommitsComparer, Git4e.CommitsComparer>()
                 .AddSingleton<IRootFromHashCreator, ChinookRootFromHashCreator>()
-                .AddSingleton<ICommitsComparer, Chinook.CommitsComparer>()
+                //.AddSingleton<ICommitsComparer, Chinook.CommitsComparer>()
                 //.AddSingleton<IRootFromHashCreator, CrewScheduleRootFromHashCreator>()
                 //.AddSingleton<ICommitsComparer, CrewSchedule.CommitsComparer>()
                 .AddSingleton<IRepository, Repository>()
