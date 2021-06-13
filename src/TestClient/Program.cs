@@ -204,7 +204,7 @@ of type and scrambled it to make a type specimen book.
                 .AddSingleton<IObjectLoader, ObjectLoader>()
                 .AddSingleton<ICommitsComparerVisitor, ConsoleCommitsComparerVisitor>()
                 .AddSingleton<ICommitsComparer, Git4e.CommitsComparer>()
-                .AddSingleton<IRootFromHashCreator, ChinookRootFromHashCreator>()
+                .AddSingleton<IRootFromHashCreator, DefaultRootFromHashCreator>()
                 //.AddSingleton<ICommitsComparer, Chinook.CommitsComparer>()
                 .AddSingleton<IRepository, Repository>()
                 .BuildServiceProvider();
