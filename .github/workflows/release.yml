@@ -1,0 +1,40 @@
+name: Release
+
+on:
+  push:
+    tags:
+    - "v[0-9]+.[0-9]+.[0-9]+"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Verify commit exists in origin/main
+      run: |
+        git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
+        git branch --remote --contains | grep origin/main
+    - name: Set VERSION variable from tag
+      run: echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_ENV
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.x
+    - name: Restore dependencies
+      run: dotnet restore src/git4e.sln
+    - name: Build
+      run: dotnet build --no-restore src/git4e.sln /p:Version=${VERSION}
+    - name: Test
+      run: dotnet test --no-build --verbosity normal src/git4e.sln /p:Version=${VERSION}
+    - name: Pack Git4e.Abstractions nuget package
+      run: dotnet pack src/Git4e.Abstractions.csproj --configuration Release /p:Version=${VERSION} --no-build --output .
+    - name: Push Git4e.Abstractions nuget package
+      run: dotnet nuget push Git4e.Abstractions.${VERSION}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${NUGETAPIKEY}
+      env:
+        NUGETAPIKEY: ${{ secrets.NUGETAPIKEY }}
+    - name: Pack Git4e nuget package
+      run: dotnet pack src/Git4e.csproj --configuration Release /p:Version=${VERSION} --no-build --output .
+    - name: Push Git4e nuget package
+      run: dotnet nuget push Git4e.${VERSION}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${NUGETAPIKEY}
+      env:
+        NUGETAPIKEY: ${{ secrets.NUGETAPIKEY }}
