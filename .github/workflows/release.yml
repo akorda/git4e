@@ -27,13 +27,13 @@ jobs:
     - name: Test
       run: dotnet test --no-build --verbosity normal src/git4e.sln /p:Version=${VERSION}
     - name: Pack Git4e.Abstractions nuget package
-      run: dotnet pack src/Git4e.Abstractions.csproj --configuration Release /p:Version=${VERSION} --no-build --output .
+      run: dotnet pack src/Git4e.Abstractions/Git4e.Abstractions.csproj --configuration Release /p:Version=${VERSION} --no-build --output .
     - name: Push Git4e.Abstractions nuget package
       run: dotnet nuget push Git4e.Abstractions.${VERSION}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${NUGETAPIKEY}
       env:
         NUGETAPIKEY: ${{ secrets.NUGETAPIKEY }}
     - name: Pack Git4e nuget package
-      run: dotnet pack src/Git4e.csproj --configuration Release /p:Version=${VERSION} --no-build --output .
+      run: dotnet pack src/Git4e/Git4e.csproj --configuration Release /p:Version=${VERSION} --no-build --output .
     - name: Push Git4e nuget package
       run: dotnet nuget push Git4e.${VERSION}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${NUGETAPIKEY}
       env:
