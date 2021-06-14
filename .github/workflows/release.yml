@@ -23,9 +23,9 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore src/git4e.sln
     - name: Build
-      run: dotnet build --no-restore src/git4e.sln /p:Version=${VERSION}
+      run: dotnet build --no-restore src/git4e.sln --configuration Release /p:Version=${VERSION}
     - name: Test
-      run: dotnet test --no-build --verbosity normal src/git4e.sln /p:Version=${VERSION}
+      run: dotnet test --no-build --verbosity normal --configuration Release src/git4e.sln /p:Version=${VERSION}
     - name: Pack Git4e.Abstractions nuget package
       run: dotnet pack src/Git4e.Abstractions/Git4e.Abstractions.csproj --configuration Release /p:Version=${VERSION} --no-build --output .
     - name: Push Git4e.Abstractions nuget package
